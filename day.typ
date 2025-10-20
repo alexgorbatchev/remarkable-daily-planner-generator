@@ -32,6 +32,10 @@
   let month_abbrev = get-month(month, short: true)
   let week_num = get-week-number(year, month, day)
 
+  // Generate link target using helper function
+  let link_target = make-day-label(year, month, day)
+  
+  // Header block with label attached
   block(below: 5mm)[
     #grid(
       columns: (1fr, auto),
@@ -66,7 +70,7 @@
           ],
         )
       ],
-    )
+    )#label(link_target)
   ]
 }
 

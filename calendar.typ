@@ -1,6 +1,7 @@
 
 // Import calendar helper functions
 #import "calendar-helpers.typ": *
+#import "styled_link.typ": styled_link
 
 
 
@@ -11,15 +12,25 @@
   let weeks = int(calc.ceil(total / 7))
   let cells = ()
 
+  // Calculate day-of-year offset for this month
+  let day_offset = 0
+  for prev_month in range(1, m) {
+    day_offset += days-in-month(y, prev_month)
+  }
+
   for _ in range(0, offset) { cells.push([]) }
   for d in range(1, dim + 1) {
+    // Generate link target using helper function
+    let link_target = make-day-label(y, m, d)
+    let day_content = styled_link(label(link_target), [#d])
+    
     if d == highlight_day {
       cells.push(table.cell(fill: black)[
         #set text(fill: white)
-        #d
+        #day_content
       ])
     } else {
-      cells.push([#d])
+      cells.push([#day_content])
     }
   }
   let need = weeks * 7 - total
@@ -62,6 +73,9 @@
 }
 
 #let year-view(year: int, factor: 85%, selected: ()) = {
+  // Add label for linking back to calendar
+  label(CALENDAR_LABEL)
+  
   let months = (
     "January","February","March","April","May","June",
     "July","August","September","October","November","December"

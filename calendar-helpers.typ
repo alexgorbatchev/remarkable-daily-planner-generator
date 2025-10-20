@@ -83,32 +83,38 @@
   }
 }
 
-// Get ISO week number
+// Get week number (ISO 8601 week numbering)
 #let get-week-number(year, month, day) = {
-  let doy = day-of-year(year, month, day)
-
-  // Get January 1st day of week (0 = Monday, 6 = Sunday)
-  let jan1_dow = {
-    let m = 13 // January of previous year in Zeller's
-    let y = year - 1
-    let K = calc.rem(y, 100)
-    let J = int((y - K) / 100)
-    let h = calc.rem(1 + int((13 * 14) / 5) + K + int(K / 4) + int(J / 4) - 2 * J, 7)
-    calc.rem(h + 5, 7) // Convert to Monday=0 system
-  }
-
-  // Calculate week number
-  let week = int((doy + jan1_dow - 1) / 7) + 1
-
-  // Handle edge cases for ISO week numbering
-  if week == 0 {
-    53 // Week belongs to previous year
-  } else if week == 53 {
-    // Check if this week belongs to next year
-    let dec31_doy = if is-leap(year) { 366 } else { 365 }
-    let dec31_dow = calc.rem(jan1_dow + dec31_doy - 1, 7)
-    if dec31_dow < 4 { 1 } else { 53 }
-  } else {
+  let jan1 = get-weekday(year, 1, 1, short: false)
+  let day_of_year = day-of-year(year, month, day)
+  
+  // Calculate ISO week
+  let week = calc.floor((day_of_year - 1) / 7) + 1
+  
+  // Adjust for ISO week numbering
+  if jan1 == "Monday" {
     week
+  } else if jan1 == "Tuesday" {
+    if day_of_year < 7 { 53 } else { week - 1 }
+  } else if jan1 == "Wednesday" {
+    if day_of_year < 6 { 53 } else { week - 1 }
+  } else if jan1 == "Thursday" {
+    if day_of_year < 5 { 53 } else { week - 1 }
+  } else if jan1 == "Friday" {
+    if day_of_year < 4 { 53 } else { week - 1 }
+  } else if jan1 == "Saturday" {
+    if day_of_year < 3 { 53 } else { week - 1 }
+  } else { // Sunday
+    if day_of_year < 2 { 53 } else { week - 1 }
   }
 }
+
+// Generate day label string for consistent linking
+#let make-day-label(year, month, day) = {
+  let month_str = if month < 10 { "0" + str(month) } else { str(month) }
+  let day_str = if day < 10 { "0" + str(day) } else { str(day) }
+  "day-" + str(year) + "-" + month_str + "-" + day_str
+}
+
+// Calendar view label constant
+#let CALENDAR_LABEL = "calendar-view"
