@@ -22,11 +22,11 @@
   
   // Use a grid container with rows
   grid(
-    rows: (auto, 1fr), // Header takes needed space, content fills the rest
-    row-gutter: 2mm,
+    rows: (config.header_height, 1fr), // Fixed header height, content fills the rest
+    row-gutter: 0mm,
     
-    // Header row
-    block(below: 5mm)[
+    // Header row with fixed height and top alignment
+    align(top)[
       #grid(
         columns: (1fr, auto),
         align: (left, right + bottom),

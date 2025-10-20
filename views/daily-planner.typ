@@ -10,14 +10,14 @@
 // Remove default block spacing
 #set block(spacing: 0pt)
 
-// Function to create a checkbox
+// Function to create a checkbox with configurable size and color
 #let checkbox() = {
-  rect(width: 4mm, height: 4mm, stroke: 0.5pt, fill: none)
+  rect(width: config.checkbox_size, height: config.checkbox_size, stroke: (paint: luma(config.checkbox_line_color), thickness: 0.5pt), fill: none)
 }
 
 // Function to create a line for writing
 #let writing-line(width: 100%) = {
-  line(length: width, stroke: (paint: gray, thickness: 0.6pt, dash: "dotted"))
+  line(length: width, stroke: (paint: luma(config.checkbox_line_color), thickness: 0.6pt, dash: "dotted"))
 }
 
 // Function to create a section with lines
@@ -32,12 +32,13 @@
   // Lines with optional checkboxes
   for i in range(num_lines) {
     if with_checkboxes {
-      v(2mm)
+      let spacing = (config.line_height - config.checkbox_size) / 2
+      v(spacing)
       block(spacing: 0mm)[#checkbox()]
-      v(2mm)
+      v(spacing)
       block(spacing: 0mm)[#writing-line()]
     } else {
-      if i < num_lines - 1 { v(7mm) }
+      if i < num_lines - 1 { v(config.line_height) }
       block(spacing: 0mm)[#writing-line()]
     }
   }
@@ -48,9 +49,6 @@
   year: int,
   month: int,
   day: int,
-  priority_lines: 3,
-  todo_lines: 13,
-  maybe_lines: 5,
 ) = {
   page-layout(
     year: year, 
@@ -70,16 +68,13 @@
       )
     ],
     main-content: [
-      // space after the header
+      #section-with-lines(title: "Top Priority", num_lines: config.priority_lines, with_checkboxes: false)
       #v(5mm)
 
-      #section-with-lines(title: "Top Priority", num_lines: priority_lines, with_checkboxes: false)
+      #section-with-lines(title: "Primary", num_lines: config.primary_lines, with_checkboxes: true)
       #v(5mm)
 
-      #section-with-lines(title: "Primary", num_lines: todo_lines, with_checkboxes: true)
-      #v(5mm)
-
-      #section-with-lines(title: "Secondary", num_lines: maybe_lines, with_checkboxes: true)
+      #section-with-lines(title: "Secondary", num_lines: config.secondary_lines, with_checkboxes: true)
     ]
   )
 }

@@ -122,7 +122,7 @@
     stroke: none,
     align: center + top,
     inset: 0pt,
-    row-gutter: 8mm,
+    row-gutter: 5mm,
     column-gutter: 5mm,
     ..cells,
   )

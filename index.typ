@@ -8,9 +8,9 @@
 
 // First page: Year calendar view
 #set page(
-  width: 158mm,
-  height: 210mm,
-  margin: (x: 0mm, y: 0mm),
+  width: config.page_width,
+  height: config.page_height,
+  margin: (x: config.margin_x, y: config.margin_y),
 )
 
 #block(width: 100%, height: 100%)[
@@ -18,11 +18,6 @@
     #year-view(year: config.year, factor: 80%, selected: ())
   ]
 ]
-
-// Set page format for daily planners
-#set page(
-  margin: (x: 5mm, y: 5mm),
-)
 
 // Generate daily planner pages for every day of the year
 #for month in range(1, 13) [
