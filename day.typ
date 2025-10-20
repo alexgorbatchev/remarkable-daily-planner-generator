@@ -1,6 +1,9 @@
 
 
-// Remove default paragraph spacing
+// Import calendar helper functions
+#import "calendar-helpers.typ": *
+
+// Remove default paragraph spacing  
 #set par(leading: 0pt, spacing: 0pt)
 
 // Remove default block spacing
@@ -11,87 +14,7 @@
 #let FONT_SIZE_MEDIUM = 12pt
 #let FONT_SIZE_SMALL = 11pt
 
-// Helper function to get day of year for week calculation
-#let day-of-year(year, month, day) = {
-  let days_in_months = (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-  if ((calc.rem(year, 4) == 0 and calc.rem(year, 100) != 0) or calc.rem(year, 400) == 0) {
-    days_in_months.at(1) = 29
-  }
 
-  let total = day
-  for i in range(0, month - 1) {
-    total += days_in_months.at(i)
-  }
-  total
-}
-
-// Helper function to get ISO week number
-#let get-week-number(year, month, day) = {
-  let doy = day-of-year(year, month, day)
-
-  // Get January 1st day of week (0 = Monday, 6 = Sunday)
-  let jan1_dow = {
-    let m = 13 // January of previous year in Zeller's
-    let y = year - 1
-    let K = calc.rem(y, 100)
-    let J = int((y - K) / 100)
-    let h = calc.rem(1 + int((13 * 14) / 5) + K + int(K / 4) + int(J / 4) - 2 * J, 7)
-    calc.rem(h + 5, 7) // Convert to Monday=0 system
-  }
-
-  // Calculate week number
-  let week = int((doy + jan1_dow - 1) / 7) + 1
-
-  // Handle edge cases for ISO week numbering
-  if week == 0 {
-    53 // Week belongs to previous year
-  } else if week == 53 {
-    // Check if this week belongs to next year
-    let dec31_doy = if ((calc.rem(year, 4) == 0 and calc.rem(year, 100) != 0) or calc.rem(year, 400) == 0) {
-      366
-    } else { 365 }
-    let dec31_dow = calc.rem(jan1_dow + dec31_doy - 1, 7)
-    if dec31_dow < 4 { 1 } else { 53 }
-  } else {
-    week
-  }
-}
-
-// Helper function to get weekday name using Zeller's congruence
-#let get-weekday(year, month, day, short: false) = {
-  let day_names_full = ("Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
-  let day_names_short = ("Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri")
-
-  // Zeller's congruence for Gregorian calendar
-  let m = if month <= 2 { month + 12 } else { month }
-  let y = if month <= 2 { year - 1 } else { year }
-  let K = calc.rem(y, 100)
-  let J = int((y - K) / 100)
-
-  let h = calc.rem(
-    day + int((13 * (m + 1)) / 5) + K + int(K / 4) + int(J / 4) - 2 * J,
-    7,
-  )
-
-  if short {
-    day_names_short.at(h)
-  } else {
-    day_names_full.at(h)
-  }
-}
-
-// Helper function to get month name
-#let get-month(month, short: false) = {
-  let months_full = ("January", "February", "March", "April", "May", "June", 
-                     "July", "August", "September", "October", "November", "December")
-  let months_short = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-  
-  if short {
-    months_short.at(month - 1)
-  } else {
-    months_full.at(month - 1)
-  }
-}
 
 // Function to create a checkbox
 #let checkbox() = {

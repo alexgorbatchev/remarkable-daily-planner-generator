@@ -1,34 +1,8 @@
 
+// Import calendar helper functions
+#import "calendar-helpers.typ": *
 
-#let is-leap(y) = (calc.rem(y, 4) == 0 and calc.rem(y, 100) != 0) or calc.rem(y, 400) == 0
 
-#let days-in-month(y, m) = if m == 2 {
-  if is-leap(y) { 29 } else { 28 }
-} else if (m == 1) or (m == 3) or (m == 5) or (m == 7) or (m == 8) or (m == 10) or (m == 12) {
-  31
-} else {
-  30
-}
-
-#let floor-div(a, b) = int((a - calc.rem(a, b)) / b)
-
-// Zeller’s congruence (Gregorian calendar)
-#let zeller-h(y, m, d) = {
-  let mm = if m <= 2 { m + 12 } else { m }
-  let yy = if m <= 2 { y - 1 } else { y }
-  let K = int(calc.rem(yy, 100))
-  let J = floor-div(yy, 100)
-  let t1 = d
-  let t2 = floor-div(13 * (mm + 1), 5)
-  let t3 = K
-  let t4 = floor-div(K, 4)
-  let t5 = floor-div(J, 4)
-  let t6 = 5 * J
-  int(calc.rem(t1 + t2 + t3 + t4 + t5 + t6, 7))
-}
-
-// Convert to Monday=0 … Sunday=6
-#let monday-index(y, m, d) = int(calc.rem(zeller-h(y, m, d) + 5, 7))
 
 #let month-cells(y, m, highlight_day: int) = {
   let dim = days-in-month(y, m)

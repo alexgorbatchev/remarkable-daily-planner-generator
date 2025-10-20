@@ -1,3 +1,6 @@
+// Import calendar helper functions
+#import "calendar-helpers.typ": *
+
 // Import calendar functions
 #import "calendar.typ": *
 
