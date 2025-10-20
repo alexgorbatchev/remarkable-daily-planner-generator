@@ -1,5 +1,5 @@
 
-#import "../config.typ": config, daily_planner_sections
+#import "../config.typ" as config
 #import "../lib/calendar.typ": *
 #import "../lib/layout.typ": page-layout
 #import "../lib/link.typ": styled_link
@@ -70,7 +70,7 @@
       )
     ],
     main-content: [
-      #for section in daily_planner_sections [
+      #for section in config.daily_planner_sections [
         #section-with-lines(section)
         #v(5mm)
       ]

@@ -1,22 +1,28 @@
-// Global configuration dictionary
-#let config = (
-  year: 2025,
-  
-  page: (
-    width: 158mm,
-    height: 210mm,
-    margin_x: 5mm,
-    margin_y: 5mm,
-  ),
-  
-  calendar_label: "calendar-view",
-  
-  header: (
-    height: 15mm,
-    date_font_size: 24pt,
-    weekday_font_size: 12pt,
-    navigation_font_size: 12pt,
-  ),
+// Global configuration with nested structures for logical grouping
+
+// Year for the planner
+#let year = 2025
+
+// Typography
+#let font = "DejaVu Sans Mono"
+
+// Page layout
+#let page = (
+  width: 158mm,
+  height: 210mm,
+  margin_x: 5mm,
+  margin_y: 5mm
+)
+
+// Navigation
+#let calendar_label = "calendar-view"
+
+// Header configuration
+#let header = (
+  height: 15mm,
+  date_font_size: 24pt,
+  weekday_font_size: 12pt,
+  navigation_font_size: 12pt
 )
 
 // Daily planner sections configuration
@@ -57,7 +63,7 @@
 )
 
 // Daily notes configuration
-#let daily_notes_config = (
+#let daily_notes = (
   lines_show: true,
   lines_size: 5mm,
   lines_style: "grid",

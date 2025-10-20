@@ -1,8 +1,6 @@
-#import "../config.typ": config
+#import "../config.typ" as config
 #import "calendar.typ": *
 #import "link.typ": styled_link
-
-// Font size constants removed - now in config
 
 // Generic page layout with header and main content
 #let page-layout(
@@ -48,7 +46,9 @@
 
         // Right side: Custom header content
         header-right,
-      )#label(link_target)
+      )
+      
+      #label(link_target)
     ],
     
     // Main content row (fills remaining space)

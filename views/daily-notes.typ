@@ -1,5 +1,5 @@
 
-#import "../config.typ": config, daily_notes_config
+#import "../config.typ" as config
 #import "../lib/layout.typ": page-layout
 #import "../lib/calendar.typ": *
 #import "../lib/link.typ": styled_link
@@ -20,17 +20,17 @@
   let available_height = content_height - config.header.height
   
   // Calculate how many grid cells fit in each direction
-  let cells_width = calc.floor(content_width / daily_notes_config.lines_size)
-  let cells_height = calc.floor(available_height / daily_notes_config.lines_size)
+  let cells_width = calc.floor(content_width / config.daily_notes.lines_size)
+  let cells_height = calc.floor(available_height / config.daily_notes.lines_size)
   
   // Calculate actual grid dimensions
-  let grid_width = cells_width * daily_notes_config.lines_size + 1mm
-  let grid_height = cells_height * daily_notes_config.lines_size + 1mm
+  let grid_width = cells_width * config.daily_notes.lines_size + 1mm
+  let grid_height = cells_height * config.daily_notes.lines_size + 1mm
   
   // Create the grid pattern
-  let grid = tiling(size: (daily_notes_config.lines_size, daily_notes_config.lines_size))[
-    #place(line(start: (0%, 0%), end: (0%, 100%), stroke: (paint: luma(daily_notes_config.lines_color), dash: "dotted")))
-    #place(line(start: (0%, 0%), end: (100%, 0%), stroke: (paint: luma(daily_notes_config.lines_color), dash: "dotted")))
+  let grid = tiling(size: (config.daily_notes.lines_size, config.daily_notes.lines_size))[
+    #place(line(start: (0%, 0%), end: (0%, 100%), stroke: (paint: luma(config.daily_notes.lines_color), dash: "dotted")))
+    #place(line(start: (0%, 0%), end: (100%, 0%), stroke: (paint: luma(config.daily_notes.lines_color), dash: "dotted")))
   ]
 
   // Center the grid in available space

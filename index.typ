@@ -1,10 +1,9 @@
-#import "config.typ": config
-#import "lib/calendar.typ": *
+#import "config.typ" as config
 #import "views/calendar.typ": *
 #import "views/daily-planner.typ": *
 #import "views/daily-notes.typ": *
 
-#set text(font: "DejaVu Sans Mono")
+#set text(font: config.font)
 
 // First page: Year calendar view
 #set page(

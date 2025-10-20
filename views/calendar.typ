@@ -1,8 +1,7 @@
 
-#import "../config.typ": config
+#import "../config.typ" as config
 #import "../lib/calendar.typ": *
 #import "../lib/link.typ": styled_link
-
 
 #let month-cells(y, m, highlight_day: int) = {
   let dim = days-in-month(y, m)
