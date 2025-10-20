@@ -6,6 +6,11 @@
 // Typography
 #let font = "DejaVu Sans Mono"
 
+// Device Support - Pre-configured for reMarkable devices:
+// - reMarkable 1: 158mm × 210mm
+// - reMarkable 2: 158mm × 210mm (default)
+// - reMarkable Pro: 158mm × 210mm
+
 // Page layout
 #let page = (
   width: 158mm,
@@ -21,10 +26,10 @@
   weekday_font_size: 12pt,
   navigation_font_size: 12pt,
 
-  // when your menu button is at the top-right corner, use 10mm, otherwise 5mm
+  // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
   menu_margin_left: 10mm,
 
-  // when your menu button is at the top-left corner, use 10mm, otherwise 5mm
+  // When your menu button is at the top-left corner, use 10mm, otherwise 5mm
   menu_margin_right: 5mm
 )
 
