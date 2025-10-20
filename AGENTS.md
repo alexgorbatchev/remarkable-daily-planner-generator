@@ -1,6 +1,6 @@
-- Compile a file once: typst compile file.typ
-- Compile a file on every change: typst watch file.typ
-- Set up a project from a template: typst init @preview/<TEMPLATE>
+- Compile a file once: `typst compile file.typ | tail -n 20`
+- Compile a file on every change: `typst watch file.typ`
+- Set up a project from a template: `typst init @preview/<TEMPLATE>`
 - use `mdls -name kMDItemNumberOfPages day.pdf` to see number of pages
 - Global variables should be SHOUT_CASE
 

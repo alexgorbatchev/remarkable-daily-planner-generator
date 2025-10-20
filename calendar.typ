@@ -23,7 +23,7 @@
     // Generate link target using helper function
     let link_target = make-day-label(y, m, d)
     let day_content = styled_link(label(link_target), [#d])
-    
+
     if d == highlight_day {
       cells.push(table.cell(fill: black)[
         #set text(fill: white)
@@ -40,8 +40,12 @@
 }
 
 #let month-view(
-  year: int, month: int, title: auto,
-  inset: 6pt, stroke: 0.5pt, title_size: 12pt,
+  year: int,
+  month: int,
+  title: auto,
+  inset: 6pt,
+  stroke: 0.5pt,
+  title_size: 12pt,
   highlight_day: int,
 ) = {
   let days = ("M", "T", "W", "T", "F", "S", "S")
@@ -51,8 +55,8 @@
   let dim = days-in-month(year, month)
   let offset = monday-index(year, month, 1)
   let y_highlight = if (highlight_day >= 1) and (highlight_day <= dim) {
-      2 + floor-div(offset + (highlight_day - 1), 7)
-    } else { -1 }
+    2 + floor-div(offset + (highlight_day - 1), 7)
+  } else { -1 }
 
   let body = month-cells(year, month, highlight_day: highlight_day)
 
@@ -73,28 +77,44 @@
 }
 
 #let year-view(year: int, factor: 85%, selected: ()) = {
-  // Add label for linking back to calendar
-  label(CALENDAR_LABEL)
-  
   let months = (
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December"
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   )
+
+  // Year heading with calendar label
+  align(center)[
+    #text(size: 18pt, weight: "bold", spacing: 0mm)[#year]#label(CALENDAR_LABEL)
+  ]
 
   let cells = ()
   for m in range(1, 13) {
     let hl = if (selected != ()) and (selected.at(0) == year) and (selected.at(1) == m) {
-        selected.at(2)
-      } else { 0 }
+      selected.at(2)
+    } else { 0 }
 
     cells.push(
       scale(x: factor, y: factor, reflow: true)[
         #month-view(
-          year: year, month: m, title: months.at(m - 1) + " " + str(year),
-          inset: 3pt, stroke: 0.25pt, title_size: 11pt,
+          year: year,
+          month: m,
+          title: months.at(m - 1) + " " + str(year),
+          inset: 3pt,
+          stroke: 0.25pt,
+          title_size: 11pt,
           highlight_day: hl,
         )
-      ]
+      ],
     )
   }
 

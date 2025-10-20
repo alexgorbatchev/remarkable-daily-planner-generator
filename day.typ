@@ -2,6 +2,7 @@
 
 // Import calendar helper functions
 #import "calendar-helpers.typ": *
+#import "styled_link.typ": styled_link
 
 // Remove default paragraph spacing  
 #set par(leading: 0pt, spacing: 0pt)
@@ -14,8 +15,6 @@
 #let FONT_SIZE_MEDIUM = 12pt
 #let FONT_SIZE_SMALL = 11pt
 
-
-
 // Function to create a checkbox
 #let checkbox() = {
   rect(width: 4mm, height: 4mm, stroke: 0.5pt, fill: none)
@@ -23,7 +22,7 @@
 
 // Function to create a line for writing
 #let writing-line(width: 100%) = {
-  line(length: width, stroke: (paint: gray, thickness: 0.4pt))
+  line(length: width, stroke: (paint: gray, thickness: 0.6pt, dash: "dotted"))
 }
 
 // Function to create the header section
@@ -66,7 +65,7 @@
             #text(size: FONT_SIZE_MEDIUM)[Week #week_num]
           ],
           [
-            #text(size: FONT_SIZE_MEDIUM)[#year]
+            #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(CALENDAR_LABEL), [#year])]
           ],
         )
       ],

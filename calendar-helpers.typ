@@ -72,10 +72,22 @@
 
 // Get month name
 #let get-month(month, short: false) = {
-  let months_full = ("January", "February", "March", "April", "May", "June", 
-                     "July", "August", "September", "October", "November", "December")
+  let months_full = (
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  )
   let months_short = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-  
+
   if short {
     months_short.at(month - 1)
   } else {
@@ -87,10 +99,10 @@
 #let get-week-number(year, month, day) = {
   let jan1 = get-weekday(year, 1, 1, short: false)
   let day_of_year = day-of-year(year, month, day)
-  
+
   // Calculate ISO week
   let week = calc.floor((day_of_year - 1) / 7) + 1
-  
+
   // Adjust for ISO week numbering
   if jan1 == "Monday" {
     week
@@ -104,7 +116,8 @@
     if day_of_year < 4 { 53 } else { week - 1 }
   } else if jan1 == "Saturday" {
     if day_of_year < 3 { 53 } else { week - 1 }
-  } else { // Sunday
+  } else {
+    // Sunday
     if day_of_year < 2 { 53 } else { week - 1 }
   }
 }
