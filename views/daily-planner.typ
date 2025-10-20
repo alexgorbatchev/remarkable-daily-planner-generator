@@ -3,6 +3,7 @@
 #import "../lib/calendar.typ": *
 #import "../lib/layout.typ": page-layout
 #import "../lib/link.typ": styled_link
+#import "calendar.typ": calendar_label
 
 // Remove default paragraph spacing  
 #set par(leading: 0pt, spacing: 0pt)
@@ -65,7 +66,7 @@
           #text(size: config.header.navigation_font_size)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
         ],
         [
-          #text(size: config.header.navigation_font_size)[#styled_link(label(config.calendar_label), [#year])]
+          #text(size: config.header.navigation_font_size)[#styled_link(label(calendar_label), [#year])]
         ],
       )
     ],

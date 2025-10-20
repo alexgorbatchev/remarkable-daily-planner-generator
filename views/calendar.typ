@@ -3,6 +3,9 @@
 #import "../lib/calendar.typ": *
 #import "../lib/link.typ": styled_link
 
+// Calendar navigation label
+#let calendar_label = "calendar-view"
+
 #let month-cells(y, m, highlight_day: int) = {
   let dim = days-in-month(y, m)
   let offset = monday-index(y, m, 1)
@@ -92,7 +95,7 @@
 
   // Year heading with calendar label
   align(center)[
-    #text(size: 18pt, weight: "bold", spacing: 0mm)[#year]#label(config.calendar_label)
+    #text(size: 18pt, weight: "bold", spacing: 0mm)[#year]#label(calendar_label)
   ]
 
   let cells = ()

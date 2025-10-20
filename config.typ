@@ -14,9 +14,6 @@
   margin_y: 5mm
 )
 
-// Navigation
-#let calendar_label = "calendar-view"
-
 // Header configuration
 #let header = (
   height: 15mm,
