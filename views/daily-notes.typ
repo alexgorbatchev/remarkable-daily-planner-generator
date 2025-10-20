@@ -1,19 +1,14 @@
 
-// Import layout function
-#import "lib/layout.typ": page-layout
-#import "calendar-helpers.typ": *
-#import "styled_link.typ": styled_link
+#import "../config.typ": config
+#import "../lib/layout.typ": page-layout
+#import "../lib/calendar.typ": *
+#import "../lib/link.typ": styled_link
 
 // Remove default paragraph spacing  
 #set par(leading: 0pt, spacing: 0pt)
 
 // Remove default block spacing
 #set block(spacing: 0pt)
-
-// Global font size variables
-#let FONT_SIZE_LARGE = 24pt
-#let FONT_SIZE_MEDIUM = 12pt
-#let FONT_SIZE_SMALL = 11pt
 
 // Function to create a 5mm grid pattern
 #let grid-pattern() = {
@@ -44,10 +39,10 @@
         align: (left + bottom, left + bottom),
         column-gutter: 5mm,
         [
-          #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(make-day-label(year, month, day)), [Day])]
+          #text(size: config.font_size_medium)[#styled_link(label(make-day-label(year, month, day)), [Day])]
         ],
         [
-          #text(size: FONT_SIZE_MEDIUM)[#year]
+          #text(size: config.font_size_medium)[#year]
         ],
       )
     ],

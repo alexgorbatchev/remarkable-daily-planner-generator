@@ -1,8 +1,7 @@
 
-// Import calendar helper functions
-#import "calendar-helpers.typ": *
-#import "styled_link.typ": styled_link
-
+#import "../config.typ": config
+#import "../lib/calendar.typ": *
+#import "../lib/link.typ": styled_link
 
 
 #let month-cells(y, m, highlight_day: int) = {
@@ -94,7 +93,7 @@
 
   // Year heading with calendar label
   align(center)[
-    #text(size: 18pt, weight: "bold", spacing: 0mm)[#year]#label(CALENDAR_LABEL)
+    #text(size: 18pt, weight: "bold", spacing: 0mm)[#year]#label(config.calendar_label)
   ]
 
   let cells = ()

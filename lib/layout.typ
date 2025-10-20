@@ -1,11 +1,8 @@
-// Import calendar helper functions
-#import "../calendar-helpers.typ": *
-#import "../styled_link.typ": styled_link
+#import "../config.typ": config
+#import "calendar.typ": *
+#import "link.typ": styled_link
 
-// Global font size variables
-#let FONT_SIZE_LARGE = 24pt
-#let FONT_SIZE_MEDIUM = 12pt
-#let FONT_SIZE_SMALL = 11pt
+// Font size constants removed - now in config
 
 // Generic page layout with header and main content
 #let page-layout(
@@ -41,10 +38,10 @@
             align: (left + bottom, left + bottom),  // Use bottom alignment for baseline
             column-gutter: 5mm,
             [
-              #text(size: FONT_SIZE_LARGE, weight: "bold")[#month_abbrev #day]
+              #text(size: config.font_size_large, weight: "bold")[#month_abbrev #day]
             ],
             [
-              #text(size: FONT_SIZE_MEDIUM)[#day_name]
+              #text(size: config.font_size_medium)[#day_name]
             ],
           )
         ],

@@ -1,20 +1,14 @@
 
-
-// Import layout function and calendar helpers
-#import "lib/layout.typ": page-layout
-#import "calendar-helpers.typ": *
-#import "styled_link.typ": styled_link
+#import "../config.typ": config
+#import "../lib/calendar.typ": *
+#import "../lib/layout.typ": page-layout
+#import "../lib/link.typ": styled_link
 
 // Remove default paragraph spacing  
 #set par(leading: 0pt, spacing: 0pt)
 
 // Remove default block spacing
 #set block(spacing: 0pt)
-
-// Global font size variables
-#let FONT_SIZE_LARGE = 24pt
-#let FONT_SIZE_MEDIUM = 12pt
-#let FONT_SIZE_SMALL = 11pt
 
 // Function to create a checkbox
 #let checkbox() = {
@@ -30,7 +24,7 @@
 #let section-with-lines(title: str, num_lines: int, with_checkboxes: false) = {
   // Section header with underline
   block(spacing: 0pt)[
-    #text(size: FONT_SIZE_SMALL, weight: "bold")[#title]
+    #text(size: config.font_size_small, weight: "bold")[#title]
   ]
   v(2mm)
   writing-line()
@@ -68,10 +62,10 @@
         align: (left + bottom, left + bottom),
         column-gutter: 5mm,
         [
-          #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
+          #text(size: config.font_size_medium)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
         ],
         [
-          #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(CALENDAR_LABEL), [#year])]
+          #text(size: config.font_size_medium)[#styled_link(label(config.calendar_label), [#year])]
         ],
       )
     ],

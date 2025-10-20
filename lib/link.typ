@@ -1,4 +1,4 @@
-// Make links have larger clickable area without affecting the layout
+// Link styling - larger clickable area without affecting layout
 #let styled_link(target, content) = {
   let padding = 5pt
 

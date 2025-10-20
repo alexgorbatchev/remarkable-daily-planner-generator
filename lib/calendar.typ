@@ -1,5 +1,7 @@
 // Calendar and date calculation helper functions
 
+#import "../config.typ": config
+
 // Leap year calculation
 #let is-leap(y) = (calc.rem(y, 4) == 0 and calc.rem(y, 100) != 0) or calc.rem(y, 400) == 0
 
@@ -135,6 +137,3 @@
   let day_str = if day < 10 { "0" + str(day) } else { str(day) }
   "notes-" + str(year) + "-" + month_str + "-" + day_str
 }
-
-// Calendar view label constant
-#let CALENDAR_LABEL = "calendar-view"
