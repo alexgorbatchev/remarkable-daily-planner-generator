@@ -1,5 +1,5 @@
 
-#import "../config.typ": config
+#import "../config.typ": config, daily_planner_sections
 #import "../lib/calendar.typ": *
 #import "../lib/layout.typ": page-layout
 #import "../lib/link.typ": styled_link
@@ -11,35 +11,37 @@
 #set block(spacing: 0pt)
 
 // Function to create a checkbox with configurable size and color
-#let checkbox() = {
-  rect(width: config.checkbox_size, height: config.checkbox_size, stroke: (paint: luma(config.checkbox_line_color), thickness: 0.5pt), fill: none)
+#let checkbox(section) = {
+  if section.checkbox_show {
+    rect(width: section.checkbox_size, height: section.checkbox_size, stroke: (paint: luma(section.checkbox_color), thickness: 0.5pt), fill: none)
+  }
 }
 
 // Function to create a line for writing
-#let writing-line(width: 100%) = {
-  line(length: width, stroke: (paint: luma(config.checkbox_line_color), thickness: 0.6pt, dash: "dotted"))
+#let writing-line(section, width: 100%) = {
+  line(length: width, stroke: (paint: luma(section.lines_color), thickness: 0.6pt, dash: section.lines_style))
 }
 
 // Function to create a section with lines
-#let section-with-lines(title: str, num_lines: int, with_checkboxes: false) = {
+#let section-with-lines(section) = {
   // Section header with underline
   block(spacing: 0pt)[
-    #text(size: config.font_size_small, weight: "bold")[#title]
+    #text(size: section.title_font_size, weight: "bold")[#section.title_label]
   ]
   v(2mm)
-  writing-line()
+  writing-line(section)
 
   // Lines with optional checkboxes
-  for i in range(num_lines) {
-    if with_checkboxes {
-      let spacing = (config.line_height - config.checkbox_size) / 2
+  for i in range(section.lines_count) {
+    if section.checkbox_show {
+      let spacing = (section.lines_height - section.checkbox_size) / 2
       v(spacing)
-      block(spacing: 0mm)[#checkbox()]
+      block(spacing: 0mm)[#checkbox(section)]
       v(spacing)
-      block(spacing: 0mm)[#writing-line()]
+      block(spacing: 0mm)[#writing-line(section)]
     } else {
-      if i < num_lines - 1 { v(config.line_height) }
-      block(spacing: 0mm)[#writing-line()]
+      v(section.lines_height)
+      block(spacing: 0mm)[#writing-line(section)]
     }
   }
 }
@@ -60,21 +62,18 @@
         align: (left + bottom, left + bottom),
         column-gutter: 5mm,
         [
-          #text(size: config.font_size_medium)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
+          #text(size: config.header.navigation_font_size)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
         ],
         [
-          #text(size: config.font_size_medium)[#styled_link(label(config.calendar_label), [#year])]
+          #text(size: config.header.navigation_font_size)[#styled_link(label(config.calendar_label), [#year])]
         ],
       )
     ],
     main-content: [
-      #section-with-lines(title: "Top Priority", num_lines: config.priority_lines, with_checkboxes: false)
-      #v(5mm)
-
-      #section-with-lines(title: "Primary", num_lines: config.primary_lines, with_checkboxes: true)
-      #v(5mm)
-
-      #section-with-lines(title: "Secondary", num_lines: config.secondary_lines, with_checkboxes: true)
+      #for section in daily_planner_sections [
+        #section-with-lines(section)
+        #v(5mm)
+      ]
     ]
   )
 }

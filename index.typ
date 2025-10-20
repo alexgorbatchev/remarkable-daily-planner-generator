@@ -8,9 +8,9 @@
 
 // First page: Year calendar view
 #set page(
-  width: config.page_width,
-  height: config.page_height,
-  margin: (x: config.margin_x, y: config.margin_y),
+  width: config.page.width,
+  height: config.page.height,
+  margin: (x: config.page.margin_x, y: config.page.margin_y),
 )
 
 #block(width: 100%, height: 100%)[

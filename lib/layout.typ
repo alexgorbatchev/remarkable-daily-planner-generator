@@ -22,7 +22,7 @@
   
   // Use a grid container with rows
   grid(
-    rows: (config.header_height, 1fr), // Fixed header height, content fills the rest
+    rows: (config.header.height, 1fr), // Fixed header height, content fills the rest
     row-gutter: 0mm,
     
     // Header row with fixed height and top alignment
@@ -38,10 +38,10 @@
             align: (left + bottom, left + bottom),  // Use bottom alignment for baseline
             column-gutter: 5mm,
             [
-              #text(size: config.font_size_large, weight: "bold")[#month_abbrev #day]
+              #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
             ],
             [
-              #text(size: config.font_size_medium)[#day_name]
+              #text(size: config.header.weekday_font_size)[#day_name]
             ],
           )
         ],

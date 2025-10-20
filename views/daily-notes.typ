@@ -1,5 +1,5 @@
 
-#import "../config.typ": config
+#import "../config.typ": config, daily_notes_config
 #import "../lib/layout.typ": page-layout
 #import "../lib/calendar.typ": *
 #import "../lib/link.typ": styled_link
@@ -13,24 +13,24 @@
 // Function to create a configurable grid pattern that fits and centers in available space
 #let grid-pattern() = {
   // Calculate available content area
-  let content_width = config.page_width - 2 * config.margin_x
-  let content_height = config.page_height - 2 * config.margin_y
+  let content_width = config.page.width - 2 * config.page.margin_x
+  let content_height = config.page.height - 2 * config.page.margin_y
   
   // Subtract header height
-  let available_height = content_height - config.header_height
+  let available_height = content_height - config.header.height
   
   // Calculate how many grid cells fit in each direction
-  let cells_width = calc.floor(content_width / config.notes_grid_size)
-  let cells_height = calc.floor(available_height / config.notes_grid_size)
+  let cells_width = calc.floor(content_width / daily_notes_config.lines_size)
+  let cells_height = calc.floor(available_height / daily_notes_config.lines_size)
   
   // Calculate actual grid dimensions
-  let grid_width = cells_width * config.notes_grid_size + 1mm
-  let grid_height = cells_height * config.notes_grid_size + 1mm
+  let grid_width = cells_width * daily_notes_config.lines_size + 1mm
+  let grid_height = cells_height * daily_notes_config.lines_size + 1mm
   
   // Create the grid pattern
-  let grid = tiling(size: (config.notes_grid_size, config.notes_grid_size))[
-    #place(line(start: (0%, 0%), end: (0%, 100%), stroke: (paint: luma(200), dash: "dotted")))
-    #place(line(start: (0%, 0%), end: (100%, 0%), stroke: (paint: luma(200), dash: "dotted")))
+  let grid = tiling(size: (daily_notes_config.lines_size, daily_notes_config.lines_size))[
+    #place(line(start: (0%, 0%), end: (0%, 100%), stroke: (paint: luma(daily_notes_config.lines_color), dash: "dotted")))
+    #place(line(start: (0%, 0%), end: (100%, 0%), stroke: (paint: luma(daily_notes_config.lines_color), dash: "dotted")))
   ]
 
   // Center the grid in available space
@@ -58,10 +58,10 @@
         align: (left + bottom, left + bottom),
         column-gutter: 5mm,
         [
-          #text(size: config.font_size_medium)[#styled_link(label(make-day-label(year, month, day)), [Day])]
+          #text(size: config.header.navigation_font_size)[#styled_link(label(make-day-label(year, month, day)), [Day])]
         ],
         [
-          #text(size: config.font_size_medium)[#styled_link(label(config.calendar_label), [#year])]
+          #text(size: config.header.navigation_font_size)[#styled_link(label(config.calendar_label), [#year])]
         ],
       )
     ],
