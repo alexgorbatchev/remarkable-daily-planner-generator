@@ -25,28 +25,33 @@
     
     // Header row with fixed height and top alignment
     align(top)[
-      #grid(
-        columns: (1fr, auto),
-        align: (left, right + bottom),
+      #pad(
+        left: config.header.menu_margin_left - config.page.margin_x, 
+        right: config.header.menu_margin_right - config.page.margin_x
+      )[
+        #grid(
+          columns: (1fr, auto),
+          align: (left, right + bottom),
 
-        // Left side: Date and day name
-        [
-          #grid(
-            columns: (auto, auto),
-            align: (left + bottom, left + bottom),  // Use bottom alignment for baseline
-            column-gutter: 5mm,
-            [
-              #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
-            ],
-            [
-              #text(size: config.header.weekday_font_size)[#day_name]
-            ],
-          )
-        ],
+          // Left side: Date and day name
+          [
+            #grid(
+              columns: (auto, auto),
+              align: (left + bottom, left + bottom),  // Use bottom alignment for baseline
+              column-gutter: 5mm,
+              [
+                #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
+              ],
+              [
+                #text(size: config.header.weekday_font_size)[#day_name]
+              ],
+            )
+          ],
 
-        // Right side: Custom header content
-        header-right,
-      )
+          // Right side: Custom header content
+          header-right,
+        )
+      ]
       
       #label(link_target)
     ],
