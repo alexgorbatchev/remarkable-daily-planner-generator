@@ -129,5 +129,12 @@
   "day-" + str(year) + "-" + month_str + "-" + day_str
 }
 
+// Generate notes label string for consistent linking
+#let make-notes-label(year, month, day) = {
+  let month_str = if month < 10 { "0" + str(month) } else { str(month) }
+  let day_str = if day < 10 { "0" + str(day) } else { str(day) }
+  "notes-" + str(year) + "-" + month_str + "-" + day_str
+}
+
 // Calendar view label constant
 #let CALENDAR_LABEL = "calendar-view"

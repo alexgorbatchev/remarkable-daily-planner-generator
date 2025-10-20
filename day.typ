@@ -1,6 +1,7 @@
 
 
-// Import calendar helper functions
+// Import layout function and calendar helpers
+#import "lib/layout.typ": page-layout
 #import "calendar-helpers.typ": *
 #import "styled_link.typ": styled_link
 
@@ -23,54 +24,6 @@
 // Function to create a line for writing
 #let writing-line(width: 100%) = {
   line(length: width, stroke: (paint: gray, thickness: 0.6pt, dash: "dotted"))
-}
-
-// Function to create the header section
-#let day-header(year: int, month: int, day: int) = {
-  let day_name = get-weekday(year, month, day, short: false)
-  let month_abbrev = get-month(month, short: true)
-  let week_num = get-week-number(year, month, day)
-
-  // Generate link target using helper function
-  let link_target = make-day-label(year, month, day)
-  
-  // Header block with label attached
-  block(below: 5mm)[
-    #grid(
-      columns: (1fr, auto),
-      align: (left, right + bottom),
-
-      // Left side: Date and day name
-      [
-        #grid(
-          columns: (auto, auto),
-          align: (left + bottom, left + bottom),  // Use bottom alignment for baseline
-          column-gutter: 5mm,
-          [
-            #text(size: FONT_SIZE_LARGE, weight: "bold")[#month_abbrev #day]
-          ],
-          [
-            #text(size: FONT_SIZE_MEDIUM)[#day_name]
-          ],
-        )
-      ],
-
-      // Right side: Year and week
-      [
-        #grid(
-          columns: (auto, auto),
-          align: (left + bottom, left + bottom),
-          column-gutter: 5mm,
-          [
-            #text(size: FONT_SIZE_MEDIUM)[Week #week_num]
-          ],
-          [
-            #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(CALENDAR_LABEL), [#year])]
-          ],
-        )
-      ],
-    )#label(link_target)
-  ]
 }
 
 // Function to create a section with lines
@@ -105,23 +58,38 @@
   todo_lines: 11,
   maybe_lines: 5,
 ) = {
-  // Header
-  day-header(year: year, month: month, day: day)
+  page-layout(
+    year: year, 
+    month: month, 
+    day: day,
+    header-right: [
+      #grid(
+        columns: (auto, auto),
+        align: (left + bottom, left + bottom),
+        column-gutter: 5mm,
+        [
+          #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(make-notes-label(year, month, day)), [Notes])]
+        ],
+        [
+          #text(size: FONT_SIZE_MEDIUM)[#styled_link(label(CALENDAR_LABEL), [#year])]
+        ],
+      )
+    ],
+    main-content: [
+      // Top priority section
+      #section-with-lines(title: "Top priority", num_lines: priority_lines, with_checkboxes: false)
 
-  v(2mm)
+      #v(10mm)
 
-  // Top priority section
-  section-with-lines(title: "Top priority", num_lines: priority_lines, with_checkboxes: false)
+      // To-dos section
+      #section-with-lines(title: "Work", num_lines: todo_lines, with_checkboxes: true)
 
-  v(10mm)
+      #v(10mm)
 
-  // To-dos section
-  section-with-lines(title: "Work", num_lines: todo_lines, with_checkboxes: true)
-
-  v(10mm)
-
-  // Maybe/someday section
-  section-with-lines(title: "Other", num_lines: maybe_lines, with_checkboxes: true)
+      // Maybe/someday section
+      #section-with-lines(title: "Other", num_lines: maybe_lines, with_checkboxes: true)
+    ]
+  )
 }
 
 

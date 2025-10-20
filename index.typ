@@ -7,6 +7,9 @@
 // Import day planner functions
 #import "day.typ": *
 
+// Import day notes functions
+#import "day-notes.typ": *
+
 #set text(font: "DejaVu Sans Mono")
 
 // Global constants
@@ -39,5 +42,15 @@
   #for day in range(1, days_in_month + 1) [
     #pagebreak()
     #daily-planner(year: YEAR, month: month, day: day)
+  ]
+]
+
+// Generate daily notes pages for every day of the year
+#for month in range(1, 13) [
+  #let days_in_month = days-in-month(YEAR, month)
+
+  #for day in range(1, days_in_month + 1) [
+    #pagebreak()
+    #daily-notes(year: YEAR, month: month, day: day)
   ]
 ]
