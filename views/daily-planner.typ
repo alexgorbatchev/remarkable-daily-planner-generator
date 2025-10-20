@@ -49,7 +49,7 @@
   month: int,
   day: int,
   priority_lines: 3,
-  todo_lines: 11,
+  todo_lines: 13,
   maybe_lines: 5,
 ) = {
   page-layout(
@@ -70,18 +70,16 @@
       )
     ],
     main-content: [
-      // Top priority section
-      #section-with-lines(title: "Top priority", num_lines: priority_lines, with_checkboxes: false)
+      // space after the header
+      #v(5mm)
 
-      #v(10mm)
+      #section-with-lines(title: "Top Priority", num_lines: priority_lines, with_checkboxes: false)
+      #v(5mm)
 
-      // To-dos section
-      #section-with-lines(title: "Work", num_lines: todo_lines, with_checkboxes: true)
+      #section-with-lines(title: "Primary", num_lines: todo_lines, with_checkboxes: true)
+      #v(5mm)
 
-      #v(10mm)
-
-      // Maybe/someday section
-      #section-with-lines(title: "Other", num_lines: maybe_lines, with_checkboxes: true)
+      #section-with-lines(title: "Secondary", num_lines: maybe_lines, with_checkboxes: true)
     ]
   )
 }

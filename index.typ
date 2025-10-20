@@ -21,9 +21,7 @@
 
 // Set page format for daily planners
 #set page(
-  width: 158mm,
-  height: 210mm,
-  margin: (x: 6mm, y: 6mm),
+  margin: (x: 5mm, y: 5mm),
 )
 
 // Generate daily planner pages for every day of the year
