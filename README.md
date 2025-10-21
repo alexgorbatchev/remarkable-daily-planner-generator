@@ -1,7 +1,8 @@
-# Daily Work / Planner 
-A customizable daily planner system designed specifically for reMarkable tablet, however could very easily be adopted for any other screen size. In its default form it uses monospace font because I'm a software engineer. 
+# reMarkable Daily Planner Generator
 
-Built with 100% [Typst](https://typst.app/).
+[![Typst](https://img.shields.io/badge/Powered%20By-Typst-blue.svg)](https://typst.app/)
+
+A customizable daily planner system designed specifically for reMarkable tablet, however could very easily be adopted for any other screen size. In its default form it uses monospace font because I'm a software engineer. 
 
 ## Overview
 This planner was designed by and for software engineering professionals who need a structured approach to managing their daily technical work. It combines traditional planning concepts with the unique needs of software development workflows.
@@ -27,6 +28,24 @@ Each page includes:
 
 ### 3. Daily Notes Pages (365 pages)
 Meetings notes, etc.
+
+## Download
+
+Pre-built PDF planners are available for direct download:
+
+- **[2025 Daily Planner](build/2025.pdf)** - Complete planner for the year 2025
+- **[2026 Daily Planner](build/2026.pdf)** - Complete planner for the year 2026
+
+Each PDF contains 731 pages (1 calendar + 365 daily planner pages + 365 daily notes pages) optimized for reMarkable 2/Pro tablets.
+
+## Preview
+
+![Preview 1](preview/img1.png)
+![Preview 2](preview/img2.png)
+![Preview 3](preview/img3.png)
+![Preview 4](preview/img4.png)
+![Preview 5](preview/img5.png)
+![Preview 6](preview/img6.png)
 
 ## Configuration
 All aspects of the planner are configurable through `config.typ`:
@@ -91,16 +110,6 @@ All aspects of the planner are configurable through `config.typ`:
 )
 ```
 
-## Usage for Software Engineers
-
-### Daily Planning Workflow
-
-1. Morning Review: Check calendar for meetings, sprint deadlines, and commitments
-2. Priority Setting: Identify any production issues or critical blockers for "Top Priority"
-3. Sprint Alignment: Plan "Primary" tasks aligned with current sprint goals
-4. Capacity Planning: Add learning, refactoring, or documentation to "Secondary"
-5. Technical Notes: Use notes pages for meeting notes, architecture planning, or debugging
-
 ## Building
 
 Generate the complete planner using the build script:
@@ -134,8 +143,8 @@ This creates `index.pdf` with all 731 pages ready for printing or digital use.
 
 ## License
 
-[Add your preferred license here]
+MIT
 
 ## Contributing
 
-[Add contribution guidelines if this is a shared project]
+Open a PR.
