@@ -1,6 +1,7 @@
 #import "../config.typ" as config
 #import "calendar.typ": *
 #import "link.typ": styled_link
+#import "holidays.typ" as special_dates
 
 // Generic page layout with header and main content
 #let page-layout(
@@ -14,6 +15,17 @@
   let day_name = get-weekday(year, month, day, short: false)
   let month_abbrev = get-month(month, short: true)
   let week_num = get-week-number(year, month, day)
+
+  let special_date = special_dates.special-date-entry(config.special_dates, month, day)
+  let weekday_label = if (special_date != none) and (special_date.label != none) and (special_date.label != "") {
+    [
+      #day_name
+      #h(1mm)
+      #text(size: config.header.day_label_font_size)[#special_date.label]
+    ]
+  } else {
+    [#day_name]
+  }
 
   // Generate link target using the provided label function
   let link_target = label-fn(year, month, day)
@@ -43,7 +55,7 @@
                 #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
               ],
               [
-                #text(size: config.header.weekday_font_size)[#day_name]
+                #text(size: config.header.weekday_font_size)[#weekday_label]
               ],
             )
           ],

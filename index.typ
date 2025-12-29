@@ -23,7 +23,7 @@
   #let days_in_month = days-in-month(config.year, month)
 
   #for day in range(1, days_in_month + 1) [
-    #if (not config.exclude_weekends) or (monday-index(config.year, month, day) < 5) [
+    #if config.calendar.weekends or (monday-index(config.year, month, day) < 5) [
       #pagebreak()
       #daily-planner(year: config.year, month: month, day: day)
     ]
@@ -35,7 +35,7 @@
   #let days_in_month = days-in-month(config.year, month)
 
   #for day in range(1, days_in_month + 1) [
-    #if (not config.exclude_weekends) or (monday-index(config.year, month, day) < 5) [
+    #if config.calendar.weekends or (monday-index(config.year, month, day) < 5) [
       #pagebreak()
       #daily-notes(year: config.year, month: month, day: day)
     ]

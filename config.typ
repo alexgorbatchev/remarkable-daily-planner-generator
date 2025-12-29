@@ -1,17 +1,36 @@
 // Global configuration with nested structures for logical grouping
 
 #import "lib/options.typ" as options
+#import "lib/holidays.typ" as special_dates_lib
 
 // Year for the planner
 #let year = int(sys.inputs.at("year", default: "2025"))
 
-// Weekend inclusion control.
-// Default: weekends are excluded.
-// Set `--input weekends=true` to include Sat/Sun.
-#let exclude_weekends = not options.weekends()
-
 // Typography
 #let font = "DejaVu Sans Mono"
+
+// Special dates
+// Either `false` (disable) or a list of date definitions for the selected country.
+// The country is provided by the build script via `--country` (default: usa).
+#let special_dates = special_dates_lib.special-dates(year, options.country())
+
+// Calendar rendering configuration
+#let calendar = (
+  // Weekend inclusion control.
+  // Default: weekends are excluded.
+  // Set `--input weekends=true` to include Sat/Sun.
+  // Note: `calendar.weekends` means "include weekends".
+  weekends: options.weekends(),
+
+  // 0..255 gray level, where 0=black and 255=white.
+  fade: 200,
+
+  // line thickness for `style=strike`.
+  strike_thickness: 1.8pt,
+
+  // 0..255 gray level for `style=strike` (normal cells).
+  strike_color: 0,
+)
 
 // Device Support - Pre-configured for reMarkable devices:
 // - reMarkable 1: 158mm × 210mm
@@ -31,6 +50,11 @@
   height: 15mm,
   date_font_size: 24pt,
   weekday_font_size: 12pt,
+
+  // Font size for the special-day label shown next to the weekday.
+  // Default: 80% of `weekday_font_size`.
+  day_label_font_size: 12pt * 60%,
+
   navigation_font_size: 12pt,
 
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm

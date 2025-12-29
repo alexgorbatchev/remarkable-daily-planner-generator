@@ -6,72 +6,84 @@
 set -euo pipefail  # Exit on any error, undefined variables, pipe failures
 
 usage() {
-    cat <<'EOF'
+  cat <<'EOF'
 Usage:
-    ./dev.sh [YEAR]
-    ./dev.sh --year YEAR
-    ./dev.sh --year YEAR [--weekends=true|false]
+  ./dev.sh [YEAR]
+  ./dev.sh --year YEAR
+  ./dev.sh --year YEAR [--weekends=true|false] [--country=usa]
 
 Examples:
-    ./dev.sh            # defaults to 2026
-    ./dev.sh 2026
-    ./dev.sh --year 2026
-    ./dev.sh --year 2026 --weekends=true
+  ./dev.sh            # defaults to 2026
+  ./dev.sh 2026
+  ./dev.sh --year 2026
+  ./dev.sh --year 2026 --weekends=true
+  ./dev.sh --year 2026 --country=usa
 EOF
 }
 
 die() {
-    echo "Error: $*" >&2
-    exit 1
+  echo "Error: $*" >&2
+  exit 1
 }
 
 DEFAULT_YEAR="2026"
 YEAR=""
 WEEKENDS="false"
+COUNTRY="usa"
 
 # Args check first
 while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        -y|--year)
-            shift
-            [[ $# -gt 0 ]] || die "--year requires a value"
-            YEAR="$1"
-            shift
-            ;;
-        --weekends)
-            shift
-            [[ $# -gt 0 ]] || die "--weekends requires a value (true|false)"
-            WEEKENDS="$1"
-            shift
-            ;;
-        --weekends=*)
-            WEEKENDS="${1#--weekends=}"
-            shift
-            ;;
-        --)
-            shift
-            break
-            ;;
-        -* )
-            die "Unknown option: $1"
-            ;;
-        * )
-            if [[ -z "${YEAR}" ]]; then
-                YEAR="$1"
-                shift
-            else
-                die "Unexpected argument: $1"
-            fi
-            ;;
-    esac
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -y|--year)
+      shift
+      [[ $# -gt 0 ]] || die "--year requires a value"
+      YEAR="$1"
+      shift
+      ;;
+    --weekends)
+      shift
+      [[ $# -gt 0 ]] || die "--weekends requires a value (true|false)"
+      WEEKENDS="$1"
+      shift
+      ;;
+    --weekends=*)
+      WEEKENDS="${1#--weekends=}"
+      shift
+      ;;
+    --country)
+      shift
+      [[ $# -gt 0 ]] || die "--country requires a value (e.g. usa)"
+      COUNTRY="$1"
+      shift
+      ;;
+    --country=*)
+      COUNTRY="${1#--country=}"
+      shift
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -* )
+      die "Unknown option: $1"
+      ;;
+    * )
+      if [[ -z "${YEAR}" ]]; then
+        YEAR="$1"
+        shift
+      else
+        die "Unexpected argument: $1"
+      fi
+      ;;
+  esac
 done
 
 if [[ -z "${YEAR}" ]]; then
-    YEAR="${DEFAULT_YEAR}"
+  YEAR="${DEFAULT_YEAR}"
 fi
 [[ "${YEAR}" =~ ^[0-9]{4}$ ]] || die "YEAR must be a 4-digit number (e.g. 2026)"
 
@@ -90,4 +102,4 @@ echo "  Output: ${OUTPUT_PATH}"
 echo "  Press Ctrl-C to stop"
 
 # Watch the main document
-typst watch --input year="${YEAR}" --input weekends="${WEEKENDS}" index.typ "${OUTPUT_PATH}"
+typst watch --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"

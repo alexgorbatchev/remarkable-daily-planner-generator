@@ -1,10 +1,77 @@
 
 #import "../config.typ" as config
 #import "../lib/calendar.typ": *
+#import "../lib/holidays.typ" as special_dates
 #import "../lib/link.typ": styled_link
 
 // Calendar navigation label
 #let calendar_label = "calendar-view"
+
+// Build a consistent-size clickable day label so 1-digit and 2-digit dates
+// have the same hit area (and any overlays have consistent geometry).
+#let day-content(year, month, day) = {
+  let link_target = make-day-label(year, month, day)
+  context {
+    let w = measure([00]).width
+    styled_link(
+      label(link_target),
+      [
+        #box(width: w)[
+          #align(center)[#day]
+        ]
+      ],
+    )
+  }
+}
+
+// Draw a diagonal strike over the content without changing its measured size.
+// This keeps the calendar layout identical while still making the mark visible.
+#let strike-overlay(content, inverted: false) = {
+
+  context {
+    let s = measure(content)
+
+    // Keep the wrapper exactly the same size as the content so table layout
+    // (row heights / column widths) doesn't change.
+    let w = s.width
+    let h = s.height
+
+    block(width: w, height: h)[
+      #place(
+        center + horizon,
+        content,
+      )
+      #place(
+        top + left,
+        line(
+          start: (w, 0pt),
+          end: (0pt, h),
+          stroke: (
+            paint: if inverted { white } else { luma(config.calendar.strike_color) },
+            thickness: config.calendar.strike_thickness,
+          ),
+        ),
+      )
+    ]
+  }
+}
+
+// Fade the content (without changing layout) to de-emphasize a date.
+#let fade-content(content, inverted: false) = {
+  // Keep this purely cosmetic: text fill changes don't affect layout metrics.
+  let fill = luma(config.calendar.fade)
+  [
+    #set text(fill: fill)
+    #content
+  ]
+}
+
+#let highlighted-day-cell(content) = {
+  table.cell(fill: black)[
+    #set text(fill: white)
+    #content
+  ]
+}
 
 #let is-weekend(year, month, day) = monday-index(year, month, day) >= 5
 
@@ -48,17 +115,27 @@
 
   for _ in range(0, offset) { cells.push([]) }
   for d in range(1, dim + 1) {
-    // Generate link target using helper function
-    let link_target = make-day-label(y, m, d)
-    let day_content = styled_link(label(link_target), [#d])
+    let day_content = day-content(y, m, d)
+    let special_date = special_dates.special-date-entry(config.special_dates, m, d)
+    let style = if special_date != none { special_date.style } else { none }
 
     if d == highlight_day {
-      cells.push(table.cell(fill: black)[
-        #set text(fill: white)
-        #day_content
-      ])
+      if style == "strike" {
+        cells.push(table.cell(fill: black)[
+          #set text(fill: white)
+          #strike-overlay(day_content, inverted: true)
+        ])
+      } else if style == "fade" {
+        cells.push(table.cell(fill: black)[
+          #fade-content(day_content, inverted: true)
+        ])
+      } else {
+        cells.push(highlighted-day-cell(day_content))
+      }
     } else {
-      cells.push([#day_content])
+      cells.push([
+        #if style == "strike" { strike-overlay(day_content) } else if style == "fade" { fade-content(day_content) } else { day_content }
+      ])
     }
   }
   let need = weeks * 7 - total
@@ -89,16 +166,27 @@
   for d in range(first, dim + 1) {
     if is-weekend(y, m, d) { continue }
 
-    let link_target = make-day-label(y, m, d)
-    let day_content = styled_link(label(link_target), [#d])
+    let day_content = day-content(y, m, d)
+    let special_date = special_dates.special-date-entry(config.special_dates, m, d)
+    let style = if special_date != none { special_date.style } else { none }
 
     if d == highlight_day {
-      cells.push(table.cell(fill: black)[
-        #set text(fill: white)
-        #day_content
-      ])
+      if style == "strike" {
+        cells.push(table.cell(fill: black)[
+          #set text(fill: white)
+          #strike-overlay(day_content, inverted: true)
+        ])
+      } else if style == "fade" {
+        cells.push(table.cell(fill: black)[
+          #fade-content(day_content, inverted: true)
+        ])
+      } else {
+        cells.push(highlighted-day-cell(day_content))
+      }
     } else {
-      cells.push([#day_content])
+      cells.push([
+        #if style == "strike" { strike-overlay(day_content) } else if style == "fade" { fade-content(day_content) } else { day_content }
+      ])
     }
   }
 
@@ -119,30 +207,30 @@
   title_size: 12pt,
   highlight_day: int,
 ) = {
-  let columns = if config.exclude_weekends { 5 } else { 7 }
-  let days = if config.exclude_weekends {
-    ("M", "T", "W", "T", "F")
-  } else {
+  let columns = if config.calendar.weekends { 7 } else { 5 }
+  let days = if config.calendar.weekends {
     ("M", "T", "W", "T", "F", "S", "S")
+  } else {
+    ("M", "T", "W", "T", "F")
   }
   let header = days.map(d => table.cell(stroke: (bottom: 0.5pt))[*#d*])
 
   // which table row holds the highlighted day? (0=title, 1=weekday header)
   let dim = days-in-month(year, month)
-  let y_highlight = if config.exclude_weekends {
-    let pos = business-day-pos(year, month, highlight_day)
-    if pos >= 0 { 2 + floor-div(pos, 5) } else { -1 }
-  } else {
+  let y_highlight = if config.calendar.weekends {
     let offset = monday-index(year, month, 1)
     if (highlight_day >= 1) and (highlight_day <= dim) {
       2 + floor-div(offset + (highlight_day - 1), 7)
     } else { -1 }
+  } else {
+    let pos = business-day-pos(year, month, highlight_day)
+    if pos >= 0 { 2 + floor-div(pos, 5) } else { -1 }
   }
 
-  let body = if config.exclude_weekends {
-    month-cells-business(year, month, highlight_day: highlight_day)
-  } else {
+  let body = if config.calendar.weekends {
     month-cells(year, month, highlight_day: highlight_day)
+  } else {
+    month-cells-business(year, month, highlight_day: highlight_day)
   }
 
   table(

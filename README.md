@@ -15,6 +15,7 @@ Pages are grouped to make day-to-day navigation easy: all Daily Planner pages ar
 ### 1. Annual Calendar View (1 page)
 - Year overview with navigation to any day
 - Quick visual reference for planning sprints and releases
+- By default, weekends (Sat/Sun) are excluded from the calendar (use `--weekends=true` to include them)
 
 ### 2. Daily Planner Pages
 Structured for engineering workflows:
@@ -27,6 +28,8 @@ Each page includes:
 - Date and week number for sprint planning
 - Navigation links to corresponding notes and calendar
 - Configurable line spacing for different writing preferences
+
+Special dates (from CSV) can also be visually marked in the calendar view and shown in the daily header (e.g. `Friday New Year's Day`).
 
 ### 3. Daily Notes Pages
 Meetings notes, etc.
@@ -55,14 +58,39 @@ If you build with weekends included (`--weekends=true`), the PDF contains 731 pa
 All aspects of the planner are configurable through `config.typ`:
 
 ```typst
+// Inputs and helpers
+#import "lib/options.typ" as options
+#import "lib/holidays.typ" as special_dates_lib
+
 // Year for the planner (passed via `--input year=...`)
 #let year = int(sys.inputs.at("year", default: "2025"))
 
 // Weekends are excluded by default.
 // Set `--input weekends=true` (or use `--weekends=true` in scripts) to include weekends.
+// This affects both the daily pages and the calendar view.
 
 // Typography
 #let font = "DejaVu Sans Mono"
+
+// Special dates
+// Set by build scripts via `--country` (default: usa). Use `--country=none` to disable.
+// Special date definitions are read from `dates-YYYY-COUNTRY.csv` in the repo root.
+// CSV format: date,style,label (e.g. 2026-01-01,fade,New Year's Day)
+// Supported styles: strike, fade
+
+#let special_dates = special_dates_lib.special-dates(year, options.country())
+
+// Calendar rendering configuration
+#let calendar = (
+  // Note: calendar.weekends means "include weekends".
+  weekends: options.weekends(),
+  // 0..255 gray level, where 0=black and 255=white.
+  fade: 200,
+  // line thickness for `style=strike`.
+  strike_thickness: 1.8pt,
+  // 0..255 gray level for `style=strike` (normal cells).
+  strike_color: 0,
+)
 
 // Device Support - Pre-configured for reMarkable devices:
 // - reMarkable 1: 158mm × 210mm
@@ -82,6 +110,8 @@ All aspects of the planner are configurable through `config.typ`:
   height: 15mm,
   date_font_size: 24pt,
   weekday_font_size: 12pt,
+  // Font size for the special-day label shown next to the weekday.
+  day_label_font_size: 12pt * 60%,
   navigation_font_size: 12pt,
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
   menu_margin_left: 10mm,
@@ -131,6 +161,18 @@ Include weekends:
 ./build.sh --year 2026 --weekends=true
 ```
 
+Select special dates country (default: usa):
+
+```bash
+./build.sh --year 2026 --country=usa
+```
+
+Disable special date markings:
+
+```bash
+./build.sh --year 2026 --country=none
+```
+
 Open the generated PDF after building:
 
 ```bash
@@ -147,6 +189,12 @@ Include weekends (direct Typst):
 
 ```bash
 typst compile --input year=2026 --input weekends=true index.typ
+```
+
+Select special dates country (direct Typst):
+
+```bash
+typst compile --input year=2026 --input country=usa index.typ
 ```
 
 This creates a PDF ready for printing or digital use.

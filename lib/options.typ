@@ -29,3 +29,8 @@
     if ex != "" { not parse-bool(ex, default: true) } else { false }
   }
 }
+
+// Holiday country selector.
+// Passed through as `--input country=...` from build scripts.
+// Default: "usa".
+#let country() = sys.inputs.at("country", default: "usa")
