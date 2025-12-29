@@ -1,19 +1,20 @@
 #!/bin/bash
 
-# Build script for Daily Planner
-# Compiles the Typst document and generates the PDF
+# Dev script for Daily Planner
+# Watches the Typst document and regenerates the PDF on changes
 
 set -euo pipefail  # Exit on any error, undefined variables, pipe failures
 
 usage() {
     cat <<'EOF'
 Usage:
-  ./build.sh YEAR
-  ./build.sh --year YEAR
+    ./dev.sh [YEAR]
+    ./dev.sh --year YEAR
 
 Examples:
-  ./build.sh 2026
-  ./build.sh --year 2026
+    ./dev.sh            # defaults to 2026
+    ./dev.sh 2026
+    ./dev.sh --year 2026
 EOF
 }
 
@@ -22,6 +23,7 @@ die() {
     exit 1
 }
 
+DEFAULT_YEAR="2026"
 YEAR=""
 
 # Args check first
@@ -55,10 +57,12 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-[[ -n "${YEAR}" ]] || { usage >&2; exit 2; }
+if [[ -z "${YEAR}" ]]; then
+    YEAR="${DEFAULT_YEAR}"
+fi
 [[ "${YEAR}" =~ ^[0-9]{4}$ ]] || die "YEAR must be a 4-digit number (e.g. 2026)"
 
-echo "Building Daily Planner..."
+echo "Watching Daily Planner..."
 
 # Deps check (after args)
 command -v typst &> /dev/null || die "Missing dependency: typst (https://typst.app)"
@@ -69,24 +73,8 @@ OUTPUT_PATH="${OUTPUT_DIR}/${OUTPUT_PDF}"
 
 mkdir -p "${OUTPUT_DIR}"
 
-# Compile the main document
-typst compile --input year="${YEAR}" index.typ "${OUTPUT_PATH}"
+echo "  Output: ${OUTPUT_PATH}"
+echo "  Press Ctrl-C to stop"
 
-echo "✓ Build successful!"
-echo "  Generated ${OUTPUT_PATH}"
-
-# Show file size and page count
-if command -v mdls &> /dev/null; then
-    pages=$(mdls -name kMDItemNumberOfPages "${OUTPUT_PATH}" 2>/dev/null | grep -Eo '[0-9]+' | head -n 1 || echo "unknown")
-    echo "  Pages: ${pages}"
-fi
-
-if command -v stat &> /dev/null && command -v numfmt &> /dev/null; then
-    size=$(stat -f%z "${OUTPUT_PATH}" 2>/dev/null | numfmt --to=iec)
-else
-    size=$(ls -lh "${OUTPUT_PATH}" | awk '{print $5}')
-fi
-echo "  Size: ${size}"
-
-# Optional: Open the PDF (uncomment if desired)
-# open "${OUTPUT_PATH}"
+# Watch the main document
+typst watch --input year="${YEAR}" index.typ "${OUTPUT_PATH}"
