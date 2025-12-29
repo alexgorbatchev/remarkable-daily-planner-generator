@@ -1,7 +1,14 @@
 // Global configuration with nested structures for logical grouping
 
+#import "lib/options.typ" as options
+
 // Year for the planner
-#let year = 2025
+#let year = int(sys.inputs.at("year", default: "2025"))
+
+// Weekend inclusion control.
+// Default: weekends are excluded.
+// Set `--input weekends=true` to include Sat/Sun.
+#let exclude_weekends = not options.weekends()
 
 // Typography
 #let font = "DejaVu Sans Mono"

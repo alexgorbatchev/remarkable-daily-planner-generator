@@ -10,11 +10,13 @@ This planner was designed by and for software engineering professionals who need
 ## Structure
 The planner generates a PDF with three main components:
 
+Pages are grouped to make day-to-day navigation easy: all Daily Planner pages are generated as one chronological block (so you can flip back/forward between days), followed by all Daily Notes pages as a separate chronological block.
+
 ### 1. Annual Calendar View (1 page)
 - Year overview with navigation to any day
 - Quick visual reference for planning sprints and releases
 
-### 2. Daily Planner Pages (365 pages)
+### 2. Daily Planner Pages
 Structured for engineering workflows:
 
 - Top Priority: For critical tasks that must be completed
@@ -26,7 +28,7 @@ Each page includes:
 - Navigation links to corresponding notes and calendar
 - Configurable line spacing for different writing preferences
 
-### 3. Daily Notes Pages (365 pages)
+### 3. Daily Notes Pages
 Meetings notes, etc.
 
 ## Download
@@ -36,7 +38,9 @@ Pre-built PDF planners are available for direct download:
 - **[2025 Daily Planner](build/2025.pdf)** - Complete planner for the year 2025
 - **[2026 Daily Planner](build/2026.pdf)** - Complete planner for the year 2026
 
-Each PDF contains 731 pages (1 calendar + 365 daily planner pages + 365 daily notes pages) optimized for reMarkable 2/Pro tablets.
+By default, weekends (Sat/Sun) are excluded from both the daily pages and the calendar view, so the page count depends on the year (e.g. 2026 produces 523 pages: 1 calendar + 261 daily planner pages + 261 daily notes pages).
+
+If you build with weekends included (`--weekends=true`), the PDF contains 731 pages in non-leap years (1 + 365 + 365) or 733 pages in leap years (1 + 366 + 366).
 
 ## Preview
 
@@ -51,8 +55,11 @@ Each PDF contains 731 pages (1 calendar + 365 daily planner pages + 365 daily no
 All aspects of the planner are configurable through `config.typ`:
 
 ```typst
-// Year for the planner
-#let year = 2025
+// Year for the planner (passed via `--input year=...`)
+#let year = int(sys.inputs.at("year", default: "2025"))
+
+// Weekends are excluded by default.
+// Set `--input weekends=true` (or use `--weekends=true` in scripts) to include weekends.
 
 // Typography
 #let font = "DejaVu Sans Mono"
@@ -115,16 +122,34 @@ All aspects of the planner are configurable through `config.typ`:
 Generate the complete planner using the build script:
 
 ```bash
-./build.sh
+./build.sh 2026
+```
+
+Include weekends:
+
+```bash
+./build.sh --year 2026 --weekends=true
+```
+
+Open the generated PDF after building:
+
+```bash
+./build.sh --year 2026 --open
 ```
 
 Or compile directly with Typst:
 
 ```bash
-typst compile index.typ
+typst compile --input year=2026 index.typ
 ```
 
-This creates `index.pdf` with all 731 pages ready for printing or digital use.
+Include weekends (direct Typst):
+
+```bash
+typst compile --input year=2026 --input weekends=true index.typ
+```
+
+This creates a PDF ready for printing or digital use.
 
 ## File Structure
 

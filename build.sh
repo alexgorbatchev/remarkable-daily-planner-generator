@@ -10,10 +10,13 @@ usage() {
 Usage:
   ./build.sh YEAR
   ./build.sh --year YEAR
+    ./build.sh --year YEAR [--weekends=true|false] [--open]
 
 Examples:
   ./build.sh 2026
   ./build.sh --year 2026
+    ./build.sh --year 2026 --weekends=true
+    ./build.sh --year 2026 --open
 EOF
 }
 
@@ -23,6 +26,8 @@ die() {
 }
 
 YEAR=""
+WEEKENDS="false"
+OPEN="false"
 
 # Args check first
 while [[ $# -gt 0 ]]; do
@@ -35,6 +40,20 @@ while [[ $# -gt 0 ]]; do
             shift
             [[ $# -gt 0 ]] || die "--year requires a value"
             YEAR="$1"
+            shift
+            ;;
+        --weekends)
+            shift
+            [[ $# -gt 0 ]] || die "--weekends requires a value (true|false)"
+            WEEKENDS="$1"
+            shift
+            ;;
+        --weekends=*)
+            WEEKENDS="${1#--weekends=}"
+            shift
+            ;;
+        --open)
+            OPEN="true"
             shift
             ;;
         --)
@@ -70,7 +89,7 @@ OUTPUT_PATH="${OUTPUT_DIR}/${OUTPUT_PDF}"
 mkdir -p "${OUTPUT_DIR}"
 
 # Compile the main document
-typst compile --input year="${YEAR}" index.typ "${OUTPUT_PATH}"
+typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" index.typ "${OUTPUT_PATH}"
 
 echo "✓ Build successful!"
 echo "  Generated ${OUTPUT_PATH}"
@@ -88,5 +107,7 @@ else
 fi
 echo "  Size: ${size}"
 
-# Optional: Open the PDF (uncomment if desired)
-# open "${OUTPUT_PATH}"
+if [[ "${OPEN}" == "true" ]]; then
+    command -v open &> /dev/null || die "Missing dependency: open (macOS)"
+    open "${OUTPUT_PATH}"
+fi

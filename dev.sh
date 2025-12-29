@@ -10,11 +10,13 @@ usage() {
 Usage:
     ./dev.sh [YEAR]
     ./dev.sh --year YEAR
+    ./dev.sh --year YEAR [--weekends=true|false]
 
 Examples:
     ./dev.sh            # defaults to 2026
     ./dev.sh 2026
     ./dev.sh --year 2026
+    ./dev.sh --year 2026 --weekends=true
 EOF
 }
 
@@ -25,6 +27,7 @@ die() {
 
 DEFAULT_YEAR="2026"
 YEAR=""
+WEEKENDS="false"
 
 # Args check first
 while [[ $# -gt 0 ]]; do
@@ -37,6 +40,16 @@ while [[ $# -gt 0 ]]; do
             shift
             [[ $# -gt 0 ]] || die "--year requires a value"
             YEAR="$1"
+            shift
+            ;;
+        --weekends)
+            shift
+            [[ $# -gt 0 ]] || die "--weekends requires a value (true|false)"
+            WEEKENDS="$1"
+            shift
+            ;;
+        --weekends=*)
+            WEEKENDS="${1#--weekends=}"
             shift
             ;;
         --)
@@ -77,4 +90,4 @@ echo "  Output: ${OUTPUT_PATH}"
 echo "  Press Ctrl-C to stop"
 
 # Watch the main document
-typst watch --input year="${YEAR}" index.typ "${OUTPUT_PATH}"
+typst watch --input year="${YEAR}" --input weekends="${WEEKENDS}" index.typ "${OUTPUT_PATH}"

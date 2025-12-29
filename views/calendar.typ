@@ -6,6 +6,33 @@
 // Calendar navigation label
 #let calendar_label = "calendar-view"
 
+#let is-weekend(year, month, day) = monday-index(year, month, day) >= 5
+
+#let business-day-pos(year, month, day) = {
+  let dim = days-in-month(year, month)
+
+  if (day < 1) or (day > dim) { return -1 }
+  if is-weekend(year, month, day) { return -1 }
+
+  let first = 1
+  while (first <= dim) and is-weekend(year, month, first) {
+    first += 1
+  }
+
+  if first > dim { return -1 }
+
+  let offset = monday-index(year, month, first)
+  let pos = offset
+
+  for d in range(first, day) {
+    if not is-weekend(year, month, d) {
+      pos += 1
+    }
+  }
+
+  pos
+}
+
 #let month-cells(y, m, highlight_day: int) = {
   let dim = days-in-month(y, m)
   let offset = monday-index(y, m, 1)
@@ -40,6 +67,49 @@
   cells
 }
 
+#let month-cells-business(y, m, highlight_day: int) = {
+  let dim = days-in-month(y, m)
+  let cells = ()
+
+  // Find first business day so we can compute the leading offset.
+  let first = 1
+  while (first <= dim) and is-weekend(y, m, first) {
+    first += 1
+  }
+
+  if first > dim {
+    // Degenerate case: no business days (shouldn't happen), return an empty grid.
+    for _ in range(0, 5) { cells.push([]) }
+    return cells
+  }
+
+  let offset = monday-index(y, m, first)
+  for _ in range(0, offset) { cells.push([]) }
+
+  for d in range(first, dim + 1) {
+    if is-weekend(y, m, d) { continue }
+
+    let link_target = make-day-label(y, m, d)
+    let day_content = styled_link(label(link_target), [#d])
+
+    if d == highlight_day {
+      cells.push(table.cell(fill: black)[
+        #set text(fill: white)
+        #day_content
+      ])
+    } else {
+      cells.push([#day_content])
+    }
+  }
+
+  let rem = calc.rem(cells.len(), 5)
+  if rem != 0 {
+    for _ in range(0, 5 - rem) { cells.push([]) }
+  }
+
+  cells
+}
+
 #let month-view(
   year: int,
   month: int,
@@ -49,26 +119,40 @@
   title_size: 12pt,
   highlight_day: int,
 ) = {
-  let days = ("M", "T", "W", "T", "F", "S", "S")
+  let columns = if config.exclude_weekends { 5 } else { 7 }
+  let days = if config.exclude_weekends {
+    ("M", "T", "W", "T", "F")
+  } else {
+    ("M", "T", "W", "T", "F", "S", "S")
+  }
   let header = days.map(d => table.cell(stroke: (bottom: 0.5pt))[*#d*])
 
   // which table row holds the highlighted day? (0=title, 1=weekday header)
   let dim = days-in-month(year, month)
-  let offset = monday-index(year, month, 1)
-  let y_highlight = if (highlight_day >= 1) and (highlight_day <= dim) {
-    2 + floor-div(offset + (highlight_day - 1), 7)
-  } else { -1 }
+  let y_highlight = if config.exclude_weekends {
+    let pos = business-day-pos(year, month, highlight_day)
+    if pos >= 0 { 2 + floor-div(pos, 5) } else { -1 }
+  } else {
+    let offset = monday-index(year, month, 1)
+    if (highlight_day >= 1) and (highlight_day <= dim) {
+      2 + floor-div(offset + (highlight_day - 1), 7)
+    } else { -1 }
+  }
 
-  let body = month-cells(year, month, highlight_day: highlight_day)
+  let body = if config.exclude_weekends {
+    month-cells-business(year, month, highlight_day: highlight_day)
+  } else {
+    month-cells(year, month, highlight_day: highlight_day)
+  }
 
   table(
-    columns: 7,
+    columns: columns,
     stroke: none,
     inset: (x: 1.7mm, y: 2mm),
     align: center + top,
     // highlight only the row containing the selected date
     fill: (x, y) => if y == y_highlight { luma(235) } else { white },
-    table.cell(colspan: 7, stroke: none, align: center + top)[
+    table.cell(colspan: columns, stroke: none, align: center + top)[
       #set text(weight: 700, size: title_size)
       #title
     ],
