@@ -113,6 +113,18 @@ All aspects of the planner are configurable through `config.typ`:
   // Font size for the special-day label shown next to the weekday.
   day_label_font_size: 12pt * 60%,
   navigation_font_size: 12pt,
+
+  // Quick jump links (shown above the weekday in the header).
+  // Shows upcoming dates as links to their Day pages.
+  quick_jump_show: true,
+  quick_jump_count: 5,
+  quick_jump_color: 180, // 0..255 gray level
+  quick_jump_font_size: 12pt * 60%,
+  quick_jump_gap: 5mm,
+  quick_jump_height: 4mm,
+  // Supported placeholders: {mon}, {month}, {day}, {dd}, {m}, {mm}, {dow}, {weekday}
+  quick_jump_format: "{dow} {day}",
+
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
   menu_margin_left: 10mm,
   // When your menu button is at the top-left corner, use 10mm, otherwise 5mm
@@ -182,10 +194,22 @@ Open the generated PDF after building:
 ./build.sh --year 2026 --open
 ```
 
+Watch for changes (auto-regenerate on save):
+
+```bash
+./build.sh --year 2026 --watch
+```
+
 Or compile directly with Typst:
 
 ```bash
 typst compile --input year=2026 index.typ
+```
+
+Watch directly with Typst:
+
+```bash
+typst watch --input year=2026 index.typ
 ```
 
 Include weekends (direct Typst):

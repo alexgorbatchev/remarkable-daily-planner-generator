@@ -36,8 +36,6 @@
 // - reMarkable 1: 158mm × 210mm
 // - reMarkable 2: 158mm × 210mm (default)
 // - reMarkable Pro: 158mm × 210mm
-
-// Page layout
 #let page = (
   width: 158mm,
   height: 210mm,
@@ -56,6 +54,29 @@
   day_label_font_size: 12pt * 60%,
 
   navigation_font_size: 12pt,
+
+  // Quick jump links row (second header row).
+  // Shows upcoming dates as links to their Day pages.
+  quick_jump_show: true,
+
+  // Number of upcoming dates to show, starting from tomorrow.
+  quick_jump_count: 5,
+
+  // 0..255 gray level for the quick jump link text.
+  quick_jump_color: 180,
+
+  // Font size for the quick jump link labels.
+  quick_jump_font_size: 12pt * 60%,
+
+  // Horizontal gap between quick jump links.
+  quick_jump_gap: 5mm,
+
+  // Fixed height for the quick jump row.
+  quick_jump_height: 4mm,
+
+  // Label format for each quick jump date.
+  // Supported placeholders: {mon}, {month}, {day}, {dd}, {m}, {mm}, {dow}, {weekday}
+  quick_jump_format: "{dow} {day}",
 
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
   menu_margin_left: 10mm,

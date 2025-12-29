@@ -10,7 +10,7 @@ usage() {
 Usage:
   ./build.sh YEAR
   ./build.sh --year YEAR
-  ./build.sh --year YEAR [--weekends=true|false] [--country=usa] [--open]
+  ./build.sh --year YEAR [--weekends=true|false] [--country=usa] [--open] [--watch]
 
 Examples:
   ./build.sh 2026
@@ -18,6 +18,7 @@ Examples:
   ./build.sh --year 2026 --weekends=true
   ./build.sh --year 2026 --country=usa
   ./build.sh --year 2026 --open
+  ./build.sh --year 2026 --watch
 EOF
 }
 
@@ -30,6 +31,7 @@ YEAR=""
 WEEKENDS="false"
 COUNTRY="usa"
 OPEN="false"
+WATCH="false"
 
 # Args check first
 while [[ $# -gt 0 ]]; do
@@ -68,6 +70,10 @@ while [[ $# -gt 0 ]]; do
       OPEN="true"
       shift
       ;;
+    --watch)
+      WATCH="true"
+      shift
+      ;;
     --)
       shift
       break
@@ -100,26 +106,40 @@ OUTPUT_PATH="${OUTPUT_DIR}/${OUTPUT_PDF}"
 
 mkdir -p "${OUTPUT_DIR}"
 
-# Compile the main document
-typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
+if [[ "${WATCH}" == "true" ]]; then
+  echo "Watching Daily Planner..."
+  echo "  Output: ${OUTPUT_PATH}"
+  echo "  Press Ctrl-C to stop"
 
-echo "✓ Build successful!"
-echo "  Generated ${OUTPUT_PATH}"
+  if [[ "${OPEN}" == "true" ]]; then
+    command -v open &> /dev/null || die "Missing dependency: open (macOS)"
+    typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
+    open "${OUTPUT_PATH}"
+  fi
 
-# Show file size and page count
-if command -v mdls &> /dev/null; then
-  pages=$(mdls -name kMDItemNumberOfPages "${OUTPUT_PATH}" 2>/dev/null | grep -Eo '[0-9]+' | head -n 1 || echo "unknown")
-  echo "  Pages: ${pages}"
-fi
-
-if command -v stat &> /dev/null && command -v numfmt &> /dev/null; then
-  size=$(stat -f%z "${OUTPUT_PATH}" 2>/dev/null | numfmt --to=iec)
+  typst watch --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
 else
-  size=$(ls -lh "${OUTPUT_PATH}" | awk '{print $5}')
-fi
-echo "  Size: ${size}"
+  # Compile the main document
+  typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
 
-if [[ "${OPEN}" == "true" ]]; then
-  command -v open &> /dev/null || die "Missing dependency: open (macOS)"
-  open "${OUTPUT_PATH}"
+  echo "✓ Build successful!"
+  echo "  Generated ${OUTPUT_PATH}"
+
+  # Show file size and page count
+  if command -v mdls &> /dev/null; then
+    pages=$(mdls -name kMDItemNumberOfPages "${OUTPUT_PATH}" 2>/dev/null | grep -Eo '[0-9]+' | head -n 1 || echo "unknown")
+    echo "  Pages: ${pages}"
+  fi
+
+  if command -v stat &> /dev/null && command -v numfmt &> /dev/null; then
+    size=$(stat -f%z "${OUTPUT_PATH}" 2>/dev/null | numfmt --to=iec)
+  else
+    size=$(ls -lh "${OUTPUT_PATH}" | awk '{print $5}')
+  fi
+  echo "  Size: ${size}"
+
+  if [[ "${OPEN}" == "true" ]]; then
+    command -v open &> /dev/null || die "Missing dependency: open (macOS)"
+    open "${OUTPUT_PATH}"
+  fi
 fi
