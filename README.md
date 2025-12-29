@@ -132,6 +132,9 @@ All aspects of the planner are configurable through `config.typ`:
     lines_style: "dotted",
     lines_color: lines_color,
     checkbox_show: true,
+    // Number of checkboxes per line (default: 1). When >1, checkboxes are
+    // evenly spaced across the row and left-aligned within each column.
+    columns: 1,
     checkbox_size: 4mm,
     checkbox_color: 200
   ),

@@ -78,6 +78,7 @@
 // - lines_style: (string) Line appearance - "solid", "dotted", "dashed", or "none"
 // - lines_color: (integer) Gray level for lines, 0=black, 255=white (e.g. 200 for light gray)
 // - checkbox_show: (boolean) Whether to show checkboxes at the start of each line (true/false)
+// - columns: (integer) Number of checkboxes per row when checkboxes are shown (default: 1)
 // - checkbox_size: (length) Size of checkbox squares when shown (e.g. 3mm, 4mm, 5mm)
 // - checkbox_color: (integer) Gray level for checkbox borders, 0=black, 255=white
 //
@@ -89,6 +90,7 @@
   (
     title_label: "Top Priority",
     title_font_size: 11pt,
+    columns: 2,
     lines_count: 3,
     lines_height: 7mm,
     lines_style: "dotted",

@@ -18,6 +18,34 @@
   }
 }
 
+// Render N checkboxes per row, evenly spaced horizontally.
+// The number of columns defaults to 1.
+#let checkbox-row(section, width: 100%) = {
+  if not section.checkbox_show { return none }
+
+  let cols = section.at("columns", default: 1)
+  if cols < 1 { cols = 1 }
+
+  let grid_cols = ()
+  for _ in range(0, cols) {
+    grid_cols.push(1fr)
+  }
+
+  let items = ()
+  for _ in range(0, cols) {
+    items.push(align(left)[#checkbox(section)])
+  }
+
+  block(width: width)[
+    #grid(
+      columns: grid_cols,
+      align: left,
+      column-gutter: 0mm,
+      ..items,
+    )
+  ]
+}
+
 // Function to create a line for writing
 #let writing-line(section, width: 100%) = {
   line(length: width, stroke: (paint: luma(section.lines_color), thickness: 0.6pt, dash: section.lines_style))
@@ -37,7 +65,7 @@
     if section.checkbox_show {
       let spacing = (section.lines_height - section.checkbox_size) / 2
       v(spacing)
-      block(spacing: 0mm)[#checkbox(section)]
+      block(spacing: 0mm)[#checkbox-row(section)]
       v(spacing)
       block(spacing: 0mm)[#writing-line(section)]
     } else {
