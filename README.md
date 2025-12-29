@@ -38,21 +38,23 @@ Meetings notes, etc.
 
 Pre-built PDF planners are available for direct download:
 
-- **[2025 Daily Planner](build/2025.pdf)** - Complete planner for the year 2025
-- **[2026 Daily Planner](build/2026.pdf)** - Complete planner for the year 2026
-
-By default, weekends (Sat/Sun) are excluded from both the daily pages and the calendar view, so the page count depends on the year (e.g. 2026 produces 523 pages: 1 calendar + 261 daily planner pages + 261 daily notes pages).
-
-If you build with weekends included (`--weekends=true`), the PDF contains 731 pages in non-leap years (1 + 365 + 365) or 733 pages in leap years (1 + 366 + 366).
+<!-- generated -->
+- **[2026, USA, No weekends](build/planner-no-weekends-usa-2026.pdf)**
+- **[2026, USA, Weekends](build/planner-weekends-usa-2026.pdf)**
+- **[2026, Canada Ontario, No weekends](build/planner-no-weekends-canada-ontario-2026.pdf)**
+- **[2026, Canada Ontario, Weekends](build/planner-weekends-canada-ontario-2026.pdf)**
+<!-- /generated -->
 
 ## Preview
 
-![Calendar View](preview/page-1.png)
-![Day View](preview/page-2.png)
-![Day Notes View](preview/page-263.png)
-![Device Calendar View](preview/img1.png)
-![Device Day View](preview/img2.png)
-![Device Notes View](preview/img3.png)
+![Calendar View / No Weekends](preview/calendar-view--no-weekends.png)
+![Calendar View / Weekends](preview/calendar-view--weekends.png)
+![Day View](preview/day-view.png)
+![Day Notes View](preview/notes-view.png)
+
+![Device Calendar View](preview/photo-1.png)
+![Device Day View](preview/photo-2.png)
+![Device Notes View](preview/photo-3.png)
 
 ## Configuration
 All aspects of the planner are configurable through `config.typ`:
@@ -87,12 +89,12 @@ All aspects of the planner are configurable through `config.typ`:
   // 0..255 gray level, where 0=black and 255=white.
   fade: 200,
   // line thickness for `style=strike`.
-  strike_thickness: 1.8pt,
+  strike_thickness: 0.8pt,
   // 0..255 gray level for `style=strike` (normal cells).
-  strike_color: 0,
+  strike_color: 100,
 
   // Horizontal gap between months in the year view.
-  column_gap: 15mm,
+  column_gap: if options.weekends() { 5mm } else { 15mm },
 )
 
 // Device Support - Pre-configured for reMarkable devices:
@@ -167,69 +169,35 @@ All aspects of the planner are configurable through `config.typ`:
 
 ## Building
 
-Generate the complete planner using the build script:
-
 ```bash
+# Generate the complete planner using the build script.
 ./build.sh 2026
-```
 
-This writes the PDF to:
+# Include weekends.
+./build.sh --year=2026 --weekends=true
 
-```text
-build/planner-2026.pdf
-```
+# Select special dates country (default: usa).
+./build.sh --year=2026 --country=usa
 
-Include weekends:
+# Disable special date markings.
+./build.sh --year=2026 --country=none
 
-```bash
-./build.sh --year 2026 --weekends=true
-```
+# Open the generated PDF after building.
+./build.sh --year=2026 --open
 
-Select special dates country (default: usa):
+# Watch for changes (auto-regenerate on save).
+./build.sh --year=2026 --watch
 
-```bash
-./build.sh --year 2026 --country=usa
-```
-
-Disable special date markings:
-
-```bash
-./build.sh --year 2026 --country=none
-```
-
-Open the generated PDF after building:
-
-```bash
-./build.sh --year 2026 --open
-```
-
-Watch for changes (auto-regenerate on save):
-
-```bash
-./build.sh --year 2026 --watch
-```
-
-Or compile directly with Typst:
-
-```bash
+# Compile directly with Typst.
 typst compile --input year=2026 index.typ build/planner-2026.pdf
-```
 
-Watch directly with Typst:
-
-```bash
+# Watch directly with Typst.
 typst watch --input year=2026 index.typ build/planner-2026.pdf
-```
 
-Include weekends (direct Typst):
-
-```bash
+# Include weekends (direct Typst).
 typst compile --input year=2026 --input weekends=true index.typ build/planner-2026.pdf
-```
 
-Select special dates country (direct Typst):
-
-```bash
+# Select special dates country (direct Typst).
 typst compile --input year=2026 --input country=usa index.typ build/planner-2026.pdf
 ```
 

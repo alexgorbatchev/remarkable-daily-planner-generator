@@ -26,13 +26,13 @@
   fade: 200,
 
   // line thickness for `style=strike`.
-  strike_thickness: 1.8pt,
+  strike_thickness: 0.8pt,
 
   // 0..255 gray level for `style=strike` (normal cells).
-  strike_color: 0,
+  strike_color: 100,
 
   // Horizontal gap between months in the year view.
-  column_gap: 15mm,
+  column_gap: if options.weekends() { 5mm } else { 15mm },
 )
 
 // Device Support - Pre-configured for reMarkable devices:

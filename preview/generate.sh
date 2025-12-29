@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Renders selected pages from the generated PDF into PNGs.
-# Output: preview/page-[num].png
+# Output: preview/*.png (file names controlled by page specs)
 
 set -euo pipefail
 
@@ -9,10 +9,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Edit this list to control which pages get rendered.
+#
+# Formats:
+#   - "N"            -> writes ${OUT_DIR}/page-N.png
+#   - "N:NAME"       -> writes ${OUT_DIR}/NAME.png
+#   - "N:NAME.png"   -> also supported (the .png suffix is ignored)
+#   - "PDF:N:NAME"   -> renders page N from PDF into ${OUT_DIR}/NAME.png
 PAGES=(
-  1
-  2
-  263
+  "planner-no-weekends-2026.pdf:1:calendar-view--no-weekends"
+  "planner-weekends-2026.pdf:1:calendar-view--weekends"
+  "planner-no-weekends-2026.pdf:2:day-view"
+  "planner-no-weekends-2026.pdf:263:notes-view"
 )
 
 OUT_DIR="${OUT_DIR:-${SCRIPT_DIR}}"
@@ -27,13 +34,16 @@ SHADOW_X="${SHADOW_X:-0}"
 SHADOW_Y="${SHADOW_Y:-10}"
 SHADOW_PAD="${SHADOW_PAD:-24}"          # pixels of transparent padding around page before shadow
 
-# You can pass the PDF path as the first arg, or set PDF_PATH.
-PDF_PATH="${PDF_PATH:-${1:-${ROOT_DIR}/build/planner-2026.pdf}}"
+DEFAULT_SOURCE_PDF="2026.pdf"
+
+# You can pass the PDF file name (preferred) or a full path as the first arg,
+# or set PDF_PATH to override everything.
+PDF_PATH="${PDF_PATH:-}"
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./preview/generate.sh [PDF_PATH]
+  ./preview/generate.sh [SOURCE_PDF] [PAGE_SPEC...]
 
 Environment:
   PDF_PATH=...       (optional, overrides arg)
@@ -48,11 +58,23 @@ Environment:
 
 Edits:
   - Set PAGES=(...) inside the script.
+    Use "N:NAME" to control the output file name per page.
+
+Args:
+  PAGE_SPEC formats:
+    - N
+    - N:NAME
+    - N:NAME.png
+    - PDF:N:NAME
 
 Examples:
+  ./preview/generate.sh                 # uses build/2026.pdf
+  ./preview/generate.sh 2026.pdf
   ./preview/generate.sh build/planner-2026.pdf
-  DPI=300 ./preview/generate.sh build/planner-2026.pdf
-  SHADOW=true ./preview/generate.sh build/planner-2026.pdf
+  ./preview/generate.sh 2026.pdf 1:calendar 2:jan 263:jan-01-notes
+  ./preview/generate.sh 2026.pdf:1:calendar 2026.pdf:2:jan 2026.pdf:263:jan-01-notes
+  DPI=300 ./preview/generate.sh 2026.pdf
+  SHADOW=true ./preview/generate.sh 2026.pdf
 EOF
 }
 
@@ -62,6 +84,48 @@ die() {
 }
 
 [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && { usage; exit 0; }
+
+is_pagespec() {
+  local s="${1}"
+  [[ "${s}" =~ ^[0-9]+(:[^/]+)?$ ]] || [[ "${s}" =~ ^[^:]+\.pdf:[0-9]+:[^/]+$ ]]
+}
+
+resolve_pdf() {
+  local src="${1}"
+  if [[ -f "${src}" ]]; then
+    echo "${src}"
+  elif [[ -f "${ROOT_DIR}/build/${src}" ]]; then
+    echo "${ROOT_DIR}/build/${src}"
+  elif [[ -f "${ROOT_DIR}/${src}" ]]; then
+    echo "${ROOT_DIR}/${src}"
+  else
+    return 1
+  fi
+}
+
+PAGE_SPECS=()
+
+if [[ $# -gt 0 ]]; then
+  if is_pagespec "${1}"; then
+    # First arg is a page spec; use default source PDF.
+    PAGE_SPECS=("$@")
+  else
+    # First arg is a source PDF (name or path). Remaining args are page specs.
+    SOURCE_PDF_ARG="${1}"
+    shift
+    if [[ $# -gt 0 ]]; then
+      PAGE_SPECS=("$@")
+    fi
+  fi
+fi
+
+if [[ -z "${PDF_PATH}" ]]; then
+  SOURCE_PDF="${SOURCE_PDF_ARG:-${DEFAULT_SOURCE_PDF}}"
+
+  if ! PDF_PATH="$(resolve_pdf "${SOURCE_PDF}")"; then
+    die "PDF not found: ${SOURCE_PDF} (looked in '.', './build', and repo root)"
+  fi
+fi
 
 [[ -f "${PDF_PATH}" ]] || die "PDF not found: ${PDF_PATH}"
 
@@ -77,8 +141,8 @@ if [[ "${have_pdftoppm}" != "true" && "${have_magick}" != "true" ]]; then
   die "Missing dependency: install 'pdftoppm' (poppler) or 'magick' (ImageMagick)"
 fi
 
-echo "Rendering pages to ${OUT_DIR}/page-[num].png"
-echo "  PDF: ${PDF_PATH}"
+echo "Rendering pages to ${OUT_DIR}/*.png"
+echo "  Default PDF: ${PDF_PATH}"
 echo "  DPI: ${DPI}"
 echo "  Shadow: ${SHADOW}"
 
@@ -91,19 +155,49 @@ fi
 
 echo "  Renderer: ${default_renderer}"
 
-for page in "${PAGES[@]}"; do
-  [[ "${page}" =~ ^[0-9]+$ ]] || die "Invalid page number in PAGES: '${page}'"
-  [[ "${page}" -ge 1 ]] || die "Invalid page number in PAGES: '${page}'"
+items=("${PAGES[@]}")
+if [[ ${#PAGE_SPECS[@]} -gt 0 ]]; then
+  items=("${PAGE_SPECS[@]}")
+fi
 
-  out_prefix="${OUT_DIR}/page-${page}"
+for page in "${items[@]}"; do
+  item="${page}"
+  page_num=""
+  out_name=""
+  item_pdf="${PDF_PATH}"
+
+  if [[ "${item}" =~ ^[^:]+\.pdf:[0-9]+:.*$ ]]; then
+    pdf_src="${item%%:*}"
+    rest="${item#*:}"
+    page_num="${rest%%:*}"
+    out_name="${rest#*:}"
+
+    if ! item_pdf="$(resolve_pdf "${pdf_src}")"; then
+      die "PDF not found: ${pdf_src} (from spec '${item}')"
+    fi
+  elif [[ "${item}" == *:* ]]; then
+    page_num="${item%%:*}"
+    out_name="${item#*:}"
+  else
+    page_num="${item}"
+    out_name="page-${page_num}"
+  fi
+
+  [[ "${page_num}" =~ ^[0-9]+$ ]] || die "Invalid page number in PAGES: '${item}'"
+  [[ "${page_num}" -ge 1 ]] || die "Invalid page number in PAGES: '${item}'"
+  [[ -n "${out_name}" ]] || die "Missing output name in PAGES entry: '${item}'"
+  [[ "${out_name}" != *"/"* ]] || die "Output name must be a file name (no '/'): '${out_name}'"
+
+  out_name="${out_name%.png}"
+  out_prefix="${OUT_DIR}/${out_name}"
   out_file="${out_prefix}.png"
   tmp_file="${out_prefix}.tmp.png"
 
-  echo "- page ${page} -> ${out_file}"
+  echo "- page ${page_num} -> ${out_file} (from $(basename "${item_pdf}"))"
 
   if [[ "${default_renderer}" == "pdftoppm" ]]; then
     # Produces ${out_prefix}.png
-    pdftoppm -f "${page}" -l "${page}" -r "${DPI}" -png -singlefile "${PDF_PATH}" "${out_prefix}"
+    pdftoppm -f "${page_num}" -l "${page_num}" -r "${DPI}" -png -singlefile "${item_pdf}" "${out_prefix}"
 
     # Normalize into an opaque, white-backed page image first.
     if [[ "${have_magick}" == "true" ]]; then
@@ -113,7 +207,7 @@ for page in "${PAGES[@]}"; do
     fi
   else
     # ImageMagick uses zero-based page index.
-    magick -density "${DPI}" "${PDF_PATH}[$((page - 1))]" -background white -alpha remove -alpha off -quality 95 "${tmp_file}"
+    magick -density "${DPI}" "${item_pdf}[$((page_num - 1))]" -background white -alpha remove -alpha off -quality 95 "${tmp_file}"
   fi
 
   if [[ "${SHADOW}" == "true" ]]; then
