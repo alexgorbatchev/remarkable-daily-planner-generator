@@ -4,7 +4,7 @@
 #import "lib/holidays.typ" as special_dates_lib
 
 // Year for the planner
-#let year = int(sys.inputs.at("year", default: "2025"))
+#let year = int(sys.inputs.at("year", default: "2026"))
 
 // Typography
 #let font = "DejaVu Sans Mono"
@@ -30,6 +30,9 @@
 
   // 0..255 gray level for `style=strike` (normal cells).
   strike_color: 0,
+
+  // Horizontal gap between months in the year view.
+  column_gap: 15mm,
 )
 
 // Device Support - Pre-configured for reMarkable devices:

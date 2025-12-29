@@ -90,6 +90,9 @@ All aspects of the planner are configurable through `config.typ`:
   strike_thickness: 1.8pt,
   // 0..255 gray level for `style=strike` (normal cells).
   strike_color: 0,
+
+  // Horizontal gap between months in the year view.
+  column_gap: 15mm,
 )
 
 // Device Support - Pre-configured for reMarkable devices:
@@ -170,6 +173,12 @@ Generate the complete planner using the build script:
 ./build.sh 2026
 ```
 
+This writes the PDF to:
+
+```text
+build/planner-2026.pdf
+```
+
 Include weekends:
 
 ```bash
@@ -203,25 +212,25 @@ Watch for changes (auto-regenerate on save):
 Or compile directly with Typst:
 
 ```bash
-typst compile --input year=2026 index.typ
+typst compile --input year=2026 index.typ build/planner-2026.pdf
 ```
 
 Watch directly with Typst:
 
 ```bash
-typst watch --input year=2026 index.typ
+typst watch --input year=2026 index.typ build/planner-2026.pdf
 ```
 
 Include weekends (direct Typst):
 
 ```bash
-typst compile --input year=2026 --input weekends=true index.typ
+typst compile --input year=2026 --input weekends=true index.typ build/planner-2026.pdf
 ```
 
 Select special dates country (direct Typst):
 
 ```bash
-typst compile --input year=2026 --input country=usa index.typ
+typst compile --input year=2026 --input country=usa index.typ build/planner-2026.pdf
 ```
 
 This creates a PDF ready for printing or digital use.

@@ -297,7 +297,7 @@
     align: center + top,
     inset: 0pt,
     row-gutter: 5mm,
-    column-gutter: 5mm,
+    column-gutter: config.calendar.column_gap,
     ..cells,
   )
 }
