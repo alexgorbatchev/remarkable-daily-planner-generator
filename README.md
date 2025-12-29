@@ -47,12 +47,12 @@ If you build with weekends included (`--weekends=true`), the PDF contains 731 pa
 
 ## Preview
 
-![Preview 1](preview/img1.png)
-![Preview 2](preview/img2.png)
-![Preview 3](preview/img3.png)
-![Preview 4](preview/img4.png)
-![Preview 5](preview/img5.png)
-![Preview 6](preview/img6.png)
+![Calendar View](preview/page-1.png)
+![Day View](preview/page-2.png)
+![Day Notes View](preview/page-263.png)
+![Device Calendar View](preview/img1.png)
+![Device Day View](preview/img2.png)
+![Device Notes View](preview/img3.png)
 
 ## Configuration
 All aspects of the planner are configurable through `config.typ`:
