@@ -33,6 +33,14 @@
 
   // Horizontal gap between months in the year view.
   column_gap: if options.weekends() { 5mm } else { 15mm },
+
+  strings: (
+    months_full: ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"),
+    months_short: ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"),
+    weekdays_full: ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
+    weekdays_short: ("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"),
+    weekday_initials_weekends: ("M", "T", "W", "T", "F", "S", "S"),
+  ),
 )
 
 // Device Support - Pre-configured for reMarkable devices:

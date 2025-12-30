@@ -1,5 +1,9 @@
 // Calendar and date calculation helper functions
 
+#import "../config.typ" as config
+
+#let CALENDAR_STRINGS = config.calendar.strings
+
 // Leap year calculation
 #let is-leap(y) = (calc.rem(y, 4) == 0 and calc.rem(y, 100) != 0) or calc.rem(y, 400) == 0
 
@@ -47,74 +51,46 @@
   total
 }
 
-// Get weekday name using Zeller's congruence
+// Get weekday name (Monday..Sunday) using Zeller's congruence.
 #let get-weekday(year, month, day, short: false) = {
-  let day_names_full = ("Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday")
-  let day_names_short = ("Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri")
-
-  // Zeller's congruence for Gregorian calendar
-  let m = if month <= 2 { month + 12 } else { month }
-  let y = if month <= 2 { year - 1 } else { year }
-  let K = calc.rem(y, 100)
-  let J = int((y - K) / 100)
-
-  let h = calc.rem(
-    day + int((13 * (m + 1)) / 5) + K + int(K / 4) + int(J / 4) - 2 * J,
-    7,
-  )
+  let idx = monday-index(year, month, day)
 
   if short {
-    day_names_short.at(h)
+    CALENDAR_STRINGS.weekdays_short.at(idx)
   } else {
-    day_names_full.at(h)
+    CALENDAR_STRINGS.weekdays_full.at(idx)
   }
 }
 
 // Get month name
 #let get-month(month, short: false) = {
-  let months_full = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  )
-  let months_short = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-
   if short {
-    months_short.at(month - 1)
+    CALENDAR_STRINGS.months_short.at(month - 1)
   } else {
-    months_full.at(month - 1)
+    CALENDAR_STRINGS.months_full.at(month - 1)
   }
 }
 
 // Get week number (ISO 8601 week numbering)
 #let get-week-number(year, month, day) = {
-  let jan1 = get-weekday(year, 1, 1, short: false)
+  let jan1 = monday-index(year, 1, 1)
   let day_of_year = day-of-year(year, month, day)
 
   // Calculate ISO week
   let week = calc.floor((day_of_year - 1) / 7) + 1
 
   // Adjust for ISO week numbering
-  if jan1 == "Monday" {
+  if jan1 == 0 {
     week
-  } else if jan1 == "Tuesday" {
+  } else if jan1 == 1 {
     if day_of_year < 7 { 53 } else { week - 1 }
-  } else if jan1 == "Wednesday" {
+  } else if jan1 == 2 {
     if day_of_year < 6 { 53 } else { week - 1 }
-  } else if jan1 == "Thursday" {
+  } else if jan1 == 3 {
     if day_of_year < 5 { 53 } else { week - 1 }
-  } else if jan1 == "Friday" {
+  } else if jan1 == 4 {
     if day_of_year < 4 { 53 } else { week - 1 }
-  } else if jan1 == "Saturday" {
+  } else if jan1 == 5 {
     if day_of_year < 3 { 53 } else { week - 1 }
   } else {
     // Sunday

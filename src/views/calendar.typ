@@ -208,11 +208,8 @@
   highlight_day: int,
 ) = {
   let columns = if config.calendar.weekends { 7 } else { 5 }
-  let days = if config.calendar.weekends {
-    ("M", "T", "W", "T", "F", "S", "S")
-  } else {
-    ("M", "T", "W", "T", "F")
-  }
+  let days_all = config.calendar.strings.weekday_initials_weekends
+  let days = if config.calendar.weekends { days_all } else { days_all.slice(0, 5) }
   let header = days.map(d => table.cell(stroke: (bottom: 0.5pt))[*#d*])
 
   // which table row holds the highlighted day? (0=title, 1=weekday header)
@@ -250,20 +247,7 @@
 }
 
 #let year-view(year: int, factor: 85%, selected: ()) = {
-  let months = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  )
+  let months = config.calendar.strings.months_full
 
   // Year heading with calendar label
   align(center)[
