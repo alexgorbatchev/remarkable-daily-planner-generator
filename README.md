@@ -47,11 +47,19 @@ Pre-built PDF planners are available for direct download:
 
 ## Preview
 
+### Calendar view, no weekends
 ![Calendar View / No Weekends](preview/calendar-view--no-weekends.png)
+
+### Calendar view, weekends
 ![Calendar View / Weekends](preview/calendar-view--weekends.png)
+
+### Day view
 ![Day View](preview/day-view.png)
+
+### Day notes view
 ![Day Notes View](preview/notes-view.png)
 
+### On device
 ![Device Calendar View](preview/photo-1.png)
 ![Device Day View](preview/photo-2.png)
 ![Device Notes View](preview/photo-3.png)
