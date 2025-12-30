@@ -64,6 +64,7 @@ OUTPUT_DIR="build"
 # - slug: used in output filenames (stable, URL/file friendly)
 # - label: human-readable text used in README link labels
 VARIANT_COUNTRIES=(
+  "none|no-locale|No locale"
   "usa|usa|USA"
   "ca-on|canada-ontario|Canada Ontario"
 )
@@ -159,11 +160,11 @@ build_variant() {
   local weekends="$2"  # true|false
   local out="$3"
 
-  typst compile \
+  typst compile --root . \
     --input year="${YEAR}" \
     --input weekends="${weekends}" \
     --input country="${country}" \
-    index.typ "${out}"
+    src/index.typ "${out}"
 
   echo "✓ ${out}"
 }

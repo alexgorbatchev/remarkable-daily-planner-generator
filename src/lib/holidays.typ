@@ -16,7 +16,7 @@
 }
 
 #let load-special-dates-file(year, country) = {
-  let path = "../dates-" + str(year) + "-" + country + ".csv"
+  let path = "../../dates-" + str(year) + "-" + country + ".csv"
   let rows = csv(path, row-type: dictionary)
 
   let out = ()

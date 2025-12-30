@@ -4,8 +4,9 @@
 
 A customizable daily planner system designed specifically for reMarkable tablet, however could very easily be adopted for any other screen size. In its default form it uses monospace font because I'm a software engineer. 
 
-## Overview
-This planner was designed by and for software engineering professionals who need a structured approach to managing their daily technical work. It combines traditional planning concepts with the unique needs of software development workflows.
+There are two main variants, one that excludes weekends (Sat/Sun) and one that includes them. Additionally, special dates (holidays, etc.) can be marked via a CSV file (USA and Canada, Ontario included as examples).
+
+Everything is fully configurable through `src/config.typ` if you want to generate your own version.
 
 ## Structure
 The planner generates a PDF with three main components:
@@ -39,6 +40,8 @@ Meetings notes, etc.
 Pre-built PDF planners are available for direct download:
 
 <!-- generated -->
+- **[2026, No locale, No weekends](build/planner-no-weekends-no-locale-2026.pdf)**
+- **[2026, No locale, Weekends](build/planner-weekends-no-locale-2026.pdf)**
 - **[2026, USA, No weekends](build/planner-no-weekends-usa-2026.pdf)**
 - **[2026, USA, Weekends](build/planner-weekends-usa-2026.pdf)**
 - **[2026, Canada Ontario, No weekends](build/planner-no-weekends-canada-ontario-2026.pdf)**
@@ -65,7 +68,7 @@ Pre-built PDF planners are available for direct download:
 ![Device Notes View](preview/photo-3.png)
 
 ## Configuration
-All aspects of the planner are configurable through `config.typ`:
+All aspects of the planner are configurable through `src/config.typ`:
 
 ```typst
 // Inputs and helpers
@@ -197,16 +200,16 @@ All aspects of the planner are configurable through `config.typ`:
 ./build.sh --year=2026 --watch
 
 # Compile directly with Typst.
-typst compile --input year=2026 index.typ build/planner-2026.pdf
+typst compile --root . --input year=2026 src/index.typ build/planner-2026.pdf
 
 # Watch directly with Typst.
-typst watch --input year=2026 index.typ build/planner-2026.pdf
+typst watch --root . --input year=2026 src/index.typ build/planner-2026.pdf
 
 # Include weekends (direct Typst).
-typst compile --input year=2026 --input weekends=true index.typ build/planner-2026.pdf
+typst compile --root . --input year=2026 --input weekends=true src/index.typ build/planner-2026.pdf
 
 # Select special dates country (direct Typst).
-typst compile --input year=2026 --input country=usa index.typ build/planner-2026.pdf
+typst compile --root . --input year=2026 --input country=usa src/index.typ build/planner-2026.pdf
 ```
 
 This creates a PDF ready for printing or digital use.
@@ -214,16 +217,26 @@ This creates a PDF ready for printing or digital use.
 ## File Structure
 
 ```
-├── config.typ              # Global configuration
-├── index.typ               # Main coordinator
-├── lib/                    # Shared utilities
-│   ├── calendar.typ        # Date calculations
-│   ├── layout.typ          # Page layout system
-│   └── link.typ            # Navigation links
-└── views/                  # Page templates
-    ├── calendar.typ        # Annual calendar view
-    ├── daily-planner.typ   # Daily task planning
-    └── daily-notes.typ     # Technical notes with grid
+.
+├── build.sh                   # Build a single planner PDF
+├── build-all.sh               # Build all variants + update README links
+├── build/                     # Generated PDFs (ignored/optional to commit)
+├── preview/                   # Preview images + preview tooling
+├── dates-YYYY-usa.csv         # Special dates (example)
+├── dates-YYYY-ca-on.csv       # Special dates (example)
+└── src/
+    ├── config.typ             # Global configuration
+    ├── index.typ              # Main coordinator
+    ├── lib/                   # Shared utilities
+    │   ├── calendar.typ       # Date calculations
+    │   ├── holidays.typ       # Special dates loading + helpers
+    │   ├── layout.typ         # Page layout system
+    │   ├── link.typ           # Navigation links
+    │   └── options.typ        # Reads Typst CLI inputs
+    └── views/                 # Page templates
+        ├── calendar.typ       # Annual calendar view
+        ├── daily-planner.typ  # Daily task planning
+        └── daily-notes.typ    # Notes pages
 ```
 
 ## License

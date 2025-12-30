@@ -113,14 +113,14 @@ if [[ "${WATCH}" == "true" ]]; then
 
   if [[ "${OPEN}" == "true" ]]; then
     command -v open &> /dev/null || die "Missing dependency: open (macOS)"
-    typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
+    typst compile --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
     open "${OUTPUT_PATH}"
   fi
 
-  typst watch --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
+  typst watch --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
 else
   # Compile the main document
-  typst compile --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" index.typ "${OUTPUT_PATH}"
+  typst compile --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
 
   echo "✓ Build successful!"
   echo "  Generated ${OUTPUT_PATH}"
