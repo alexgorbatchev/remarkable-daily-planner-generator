@@ -1,6 +1,6 @@
 ---
 created_on: 2026-09-29 20:19
-last_modified: 2026-09-29 20:19
+last_modified: 2026-09-30 13:25
 status: current
 ---
 
@@ -20,11 +20,15 @@ The templates generate an annual calendar followed by chronological blocks of da
 - Keep page blocks ordered Calendar, Day, Notes, then optional Standup. Append standups to preserve Day/Notes page positions.
 - Apply the same weekend filter to all daily blocks and navigation destinations.
 - Date label helpers in `lib/calendar.typ` are shared by pages and links; keep their targets consistent.
-- All upcoming-date links lead to Day pages, even from Notes or Standup pages.
+- Gray date links preserve the current view: Day to Day, Notes to Notes, and Standup to Standup. Put the previous included date first, followed by the configured number of upcoming dates; skip excluded weekends and omit destinations outside the planner year.
 - Standups default off. `STANDUP.enabled` sets the default; explicit `standup` input overrides it. Both generation and links must use `STANDUP_ENABLED`.
-- Standup pages contain one title and horizontal writing lines filling the remaining height.
-- Preserve the portrait toolbar clearance: blank top gap, right-aligned upcoming dates above the main header, compact bold date, and no extra left inset.
+- Standup pages have no separate body heading. Keep the Standup navigation tab and fill the space below the daily navigation with horizontal writing lines.
+- Preserve the portrait toolbar clearance: blank top gap, left-aligned upcoming dates above the main header at their existing vertical position, compact bold date, and no extra left inset.
+- Daily headers use one left-aligned row: `YYYY Mon DD Weekday Notes Standup`. Bold the date, zero-pad the day, use short weekdays (`Mon`, `Tue`, etc.), and link the year to the annual calendar. Keep all tabs visible and highlight the active one; the weekday links to Day, with Notes and enabled Standup linking to the same date. Disabled Standup stays visible as plain text.
+- Within the bold date, only `YYYY` is clickable. Keep `Mon DD` as plain text and keep the year link's hitbox clear of it.
 - Special-date labels sit beneath the weekday to leave room for navigation.
+- Active tabs use a black box with 4pt padding and white text. Size the text's bottom edge to its glyph bounds so descenders remain inside the padded box.
+- Keep the touch areas of upcoming-date links separate from the main header links.
 
 ## Verification
 

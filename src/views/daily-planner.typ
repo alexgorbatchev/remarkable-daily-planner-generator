@@ -11,7 +11,7 @@
     year: year,
     month: month,
     day: day,
-    header-right: page-navigation(year, month, day, "day", calendar_label),
+    header-content: page-navigation(year, month, day, "day", calendar_label),
     main-content: [
       #for section in config.daily_planner_sections [
         #section-with-lines(section)

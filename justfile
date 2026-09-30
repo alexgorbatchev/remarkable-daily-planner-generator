@@ -22,9 +22,11 @@ preview *args:
 lint:
     @for script in scripts/*.sh; do bash -n "$script" || exit; done
 
-# Smoke-compile planners with standups off and on without replacing build PDFs.
+# Check navigation and smoke-compile both standup settings without replacing build PDFs.
 test:
     mkdir -p .tmp
+    typst compile --root . --input standup=false tests/navigation.typ .tmp/navigation-test.pdf
+    typst compile --root . --input standup=true tests/navigation.typ .tmp/navigation-standup-test.pdf
     typst compile --root . --input year=2026 --input standup=false src/index.typ .tmp/planner-test.pdf
     typst compile --root . --input year=2026 --input standup=true src/index.typ .tmp/planner-standup-test.pdf
 

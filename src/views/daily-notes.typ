@@ -52,7 +52,7 @@
     month: month, 
     day: day,
     label-fn: make-notes-label, // Use notes label instead of day label
-    header-right: page-navigation(year, month, day, "notes", calendar_label),
+    header-content: page-navigation(year, month, day, "notes", calendar_label),
     main-content: grid-pattern()
   )
 }

@@ -39,9 +39,9 @@ Meetings notes, etc.
 
 Standup pages are disabled by default. Enable them with `--standup` or set `enabled: true` inside `STANDUP` in `src/config.typ`. Explicit `--standup=true` or `--standup=false` flags override the config value; omitting the flag preserves it. Both `just build` and `just build-all` accept these flags.
 
-When enabled, there is one standup page per included date, with a Standup heading and horizontal writing lines filling the remaining page. Links return to that date's Day and Notes pages or the annual calendar. Upcoming-date links lead to Day pages, as they do elsewhere in the planner. When disabled, Standup navigation links are omitted too.
+When enabled, there is one standup page per included date, with horizontal writing lines filling the space below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. Gray date links show the previous included date first, followed by upcoming dates within the planner year. They preserve the current view: Day to Day, Notes to Notes, and Standup to Standup. When disabled, Standup navigation links are omitted too.
 
-Customize the title, title spacing, line spacing, line style, and line color through `STANDUP` in `src/config.typ`. The line count adjusts to the available page height.
+Customize the line spacing, line style, and line color through `STANDUP` in `src/config.typ`. The line count adjusts to the available page height.
 
 ## Download
 
@@ -131,7 +131,7 @@ All aspects of the planner are configurable through `src/config.typ`:
 
 // Header configuration
 #let header = (
-  height: 15mm,
+  height: 15mm + 3pt,
   // Blank space above the navigation row for the top toolbar.
   top_gap: 4mm,
   date_font_size: 12pt,
@@ -140,15 +140,15 @@ All aspects of the planner are configurable through `src/config.typ`:
   day_label_font_size: 12pt * 60%,
   navigation_font_size: 12pt,
 
-  // Quick jump links (right-aligned above the main header).
-  // Shows upcoming dates as links to their Day pages.
+  // Quick jump links (left-aligned above the main header).
+  // Shows the previous included date, then upcoming dates in the current page type.
   quick_jump_show: true,
   quick_jump_count: 5,
   quick_jump_color: 180, // 0..255 gray level
   quick_jump_font_size: 12pt * 60%,
   quick_jump_gap: 5mm,
   // Navigation row height, reserved even when links are hidden.
-  quick_jump_height: 4mm,
+  quick_jump_height: 4mm + 1pt,
   // Supported placeholders: {mon}, {month}, {day}, {dd}, {m}, {mm}, {dow}, {weekday}
   quick_jump_format: "{dow} {day}",
 

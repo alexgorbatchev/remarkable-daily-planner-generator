@@ -56,7 +56,7 @@
 
 // Header configuration
 #let header = (
-  height: 15mm,
+  height: 15mm + 3pt,
   // Blank space above the navigation row for the top toolbar.
   top_gap: 4mm,
   date_font_size: 12pt,
@@ -68,8 +68,8 @@
 
   navigation_font_size: 12pt,
 
-  // Quick jump links row, right-aligned above the main header.
-  // Shows upcoming dates as links to their Day pages.
+  // Quick jump links row, left-aligned above the main header.
+  // Shows the previous included date, then upcoming dates in the current page type.
   quick_jump_show: true,
 
   // Number of upcoming dates to show, starting from tomorrow.
@@ -86,7 +86,7 @@
 
   // Fixed height for the quick jump row.
   // Reserve this space even when links are hidden, to clear the top toolbar.
-  quick_jump_height: 4mm,
+  quick_jump_height: 4mm + 1pt,
 
   // Label format for each quick jump date.
   // Supported placeholders: {mon}, {month}, {day}, {dd}, {m}, {mm}, {dow}, {weekday}
@@ -166,12 +166,9 @@
   lines_color: lines_color
 )
 
-// Standup writing lines fill the available space below the title.
+// Standup writing lines fill the available space below the daily navigation.
 #let STANDUP = (
   enabled: false,
-  title: "Standup",
-  title_font_size: 11pt,
-  title_gap: 2mm,
   lines_height: 7mm,
   lines_style: "dotted",
   lines_color: lines_color,

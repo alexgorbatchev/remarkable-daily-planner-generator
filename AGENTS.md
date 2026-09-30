@@ -1,6 +1,6 @@
 ---
 created_on: 2026-09-29 20:19
-last_modified: 2026-09-29 20:19
+last_modified: 2026-09-30 10:05
 status: current
 ---
 
@@ -33,7 +33,7 @@ This repository generates linked PDF planners with Typst and Bash.
 - New global variables use SHOUT_CASE; keep unrelated existing names unchanged.
 - Use `rg` or codegraph for searches. Never use heredocs.
 - Keep scratch files in `.tmp/`; use `.workspaces/` for worktrees, based on main by default.
-- `just test` performs compilation smoke checks; it does not measure coverage or inspect visual layout.
+- `just test` checks generated navigation content and smoke-compiles both standup settings; it does not measure coverage or inspect visual layout.
 - For behavior changes outside `scripts/`, update corresponding tests and require 90% code coverage. No Typst coverage tooling is currently configured; report that limitation rather than claiming coverage.
 - Where tests exist, work red/green and temporarily disable the change to confirm the tests fail.
 - For layout changes, render affected pages and inspect them; compilation alone does not establish visual correctness.

@@ -3,25 +3,53 @@
 #import "link.typ": styled_link
 #import "holidays.typ" as special_dates
 
+#let fmt2(n) = if n < 10 { "0" + str(n) } else { str(n) }
+
 // Same-date navigation shared by all three daily page types.
 #let page-navigation(year, month, day, current, calendar-target) = {
+  let day_name = get-weekday(year, month, day, short: true)
+  let special_date = special_dates.special-date-entry(config.special_dates, month, day)
   let destinations = (
-    (kind: "day", title: "Day", target: make-day-label),
+    (kind: "day", title: day_name, target: make-day-label),
     (kind: "notes", title: "Notes", target: make-notes-label),
+    (kind: "standup", title: "Standup", target: make-standup-label),
   )
-  if config.STANDUP_ENABLED {
-    destinations.push((kind: "standup", title: "Standup", target: make-standup-label))
-  }
-  let links = ()
+  let cells = (
+    text(size: config.header.date_font_size, weight: "bold")[
+      #styled_link(label(calendar-target), [#year], padding: 2pt) #get-month(month, short: true) #fmt2(day)
+    ],
+  )
   for destination in destinations {
-    if destination.kind != current {
-      let target = destination.target
-      links.push(styled_link(label(target(year, month, day)), [#destination.title]))
+    let title = [#destination.title]
+    if destination.kind == current {
+      title = text(fill: white, bottom-edge: "bounds", title)
     }
+    let tab = if destination.kind == "standup" and not config.STANDUP_ENABLED {
+      title
+    } else {
+      let target = destination.target
+      styled_link(
+        label(target(year, month, day)),
+        title,
+        padding: if destination.kind == current { 4pt } else { 2pt },
+        fill: if destination.kind == current { black } else { none },
+      )
+    }
+    if destination.kind == "day" {
+      tab = text(size: config.header.weekday_font_size, tab)
+      if (special_date != none) and (special_date.label != none) and (special_date.label != "") {
+        tab = grid(
+          columns: (auto,),
+          row-gutter: 1mm + 2pt,
+          tab,
+          text(size: config.header.day_label_font_size)[#special_date.label],
+        )
+      }
+    }
+    cells.push(tab)
   }
-  links.push(styled_link(label(calendar-target), [#year]))
   text(size: config.header.navigation_font_size)[
-    #grid(columns: links.len(), align: left + bottom, column-gutter: 5mm, ..links)
+    #grid(columns: (auto, auto, auto, auto), align: left + top, column-gutter: 4mm, ..cells)
   ]
 }
 
@@ -34,8 +62,6 @@
     (year: year + 1, month: 1, day: 1)
   }
 }
-
-#let fmt2(n) = if n < 10 { "0" + str(n) } else { str(n) }
 
 #let quick-jump-label(year, month, day) = {
   let fmt = config.header.quick_jump_format
@@ -53,16 +79,34 @@
   out
 }
 
-#let quick-jump-row(year, month, day) = {
+#let quick-jump-row(year, month, day, label-fn) = {
   if not config.header.quick_jump_show { return none }
 
   let count = config.header.quick_jump_count
   if count <= 0 { return none }
 
+  let date-cell(year, month, day) = {
+    let label_text = quick-jump-label(year, month, day)
+    let target = label(label-fn(year, month, day))
+    grid.cell(align: left)[
+      #set text(size: config.header.quick_jump_font_size, fill: luma(config.header.quick_jump_color))
+      #styled_link(target, [#label_text], padding: 2pt)
+    ]
+  }
+
   let cells = ()
+  let previous = datetime(year: year, month: month, day: day) - duration(days: 1)
+  while previous.year() == year {
+    if config.calendar.weekends or previous.weekday() <= 5 {
+      cells.push(date-cell(previous.year(), previous.month(), previous.day()))
+      break
+    }
+    previous -= duration(days: 1)
+  }
+  let previous_count = cells.len()
   let cur = (year: year, month: month, day: day)
 
-  while cells.len() < count {
+  while cells.len() < count + previous_count {
     cur = next-day(cur.year, cur.month, cur.day)
     if cur.year != year { break }
 
@@ -72,15 +116,7 @@
       continue
     }
 
-    let label_text = quick-jump-label(cur.year, cur.month, cur.day)
-    let target = label(make-day-label(cur.year, cur.month, cur.day))
-
-    cells.push(
-      grid.cell(align: left)[
-        #set text(size: config.header.quick_jump_font_size, fill: luma(config.header.quick_jump_color))
-        #styled_link(target, [#label_text])
-      ]
-    )
+    cells.push(date-cell(cur.year, cur.month, cur.day))
   }
 
   if cells.len() == 0 { return none }
@@ -101,26 +137,11 @@
   year: int,
   month: int, 
   day: int,
-  header-right: content,
+  header-content: content,
   main-content: content,
   label-fn: make-day-label // Default to day label function
 ) = {
-  let day_name = get-weekday(year, month, day, short: false)
-  let month_abbrev = get-month(month, short: true)
-
-  let quick_jump = quick-jump-row(year, month, day)
-
-  let special_date = special_dates.special-date-entry(config.special_dates, month, day)
-  let weekday_label = if (special_date != none) and (special_date.label != none) and (special_date.label != "") {
-    grid(
-      columns: (auto,),
-      row-gutter: 0pt,
-      [#day_name],
-      text(size: config.header.day_label_font_size)[#special_date.label],
-    )
-  } else {
-    [#day_name]
-  }
+  let quick_jump = quick-jump-row(year, month, day, label-fn)
 
   // Generate link target using the provided label function
   let link_target = label-fn(year, month, day)
@@ -137,28 +158,7 @@
           left: config.header.menu_margin_left - config.page.margin_x,
           right: config.header.menu_margin_right - config.page.margin_x,
         )[
-          #grid(
-            columns: (1fr, auto),
-            rows: (auto,),
-            row-gutter: 0mm,
-            align: (left, right + top),
-            // Left side: Date and day name
-            [
-              #grid(
-                columns: (auto, auto),
-                align: (left + top, left + top),
-                column-gutter: 5mm,
-                [
-                  #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
-                ],
-                [
-                  #text(size: config.header.weekday_font_size)[#weekday_label]
-                ],
-              )
-            ],
-            // Right side: Custom header content
-            header-right,
-          )
+          #header-content
         ]
 
         pad(
@@ -168,8 +168,8 @@
             rows: (config.header.quick_jump_height, auto),
             row-gutter: 0mm,
             pad(
-              right: config.header.menu_margin_right - config.page.margin_x,
-              align(right + top, quick_jump),
+              left: config.header.menu_margin_left - config.page.margin_x,
+              align(left + top, quick_jump),
             ),
             header_main,
           ),
