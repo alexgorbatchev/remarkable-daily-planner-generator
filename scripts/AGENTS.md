@@ -1,12 +1,13 @@
 ---
 created_on: 2026-09-29 20:19
-last_modified: 2026-09-29 20:19
+last_modified: 2026-09-30 16:22
 status: current
 ---
 
 # Build and preview scripts
 
 Bash scripts build Typst PDFs and render preview images; the root justfile forwards arguments.
+The separate Python migration runner creates resumable native reMarkable updates using rmapi.
 
 ## Commands
 
@@ -15,10 +16,14 @@ Bash scripts build Typst PDFs and render preview images; the root justfile forwa
 - Batch options: `just build-all --help`
 - Preview options: `just preview --help`
 - Compile smoke checks: `just test`
+- Native migration setup and checks: `just migration-setup`, `just migration-test`.
+- Migration commands: `just migrate prepare`, `just migrate publish RUN_DIR`, `just migrate resume RUN_DIR`.
 
 ## Local rules
 
 - Retain the existing Bash scripts and argument handling. The user explicitly declined a CLI rewrite and agent-mode changes.
+- The new migration CLI uses Click and supports `AGENT=1`; do not change existing Bash output or parsing as part of that workflow.
+- Keep migration runs under `.tmp/`; source native archives are never replacement targets. Resume saved manifests after ambiguous uploads before attempting another upload.
 - Keep just recipes thin. Use positional arguments and quoted `"$@"` to preserve argument boundaries.
 - Resolve build paths relative to the repository, not the caller's working directory.
 - Preview paths supplied directly to the script resolve from the caller first, then the repo's `build/` and root. Through just, relative paths start at the repo root.

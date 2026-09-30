@@ -10,6 +10,23 @@ build *args:
 
 alias run := build
 
+# Prepare, publish, and resume native planner migrations.
+migrate *args:
+    uv run --python .venv/bin/python python scripts/migrate.py migration "$@"
+
+# Native migration commands with compact agent output.
+run-ai *args:
+    AGENT=1 uv run --python .venv/bin/python python scripts/migrate.py "$@"
+
+# Install migration dependencies into the project-local Python environment.
+migration-setup:
+    if [ ! -x .venv/bin/python ]; then uv venv .venv; fi
+    uv pip install --python .venv/bin/python -r scripts/migration/requirements.txt
+
+# Check native copying, page planning, and resumable cloud transitions locally.
+migration-test:
+    PYTHONPATH=scripts uv run --python .venv/bin/python python -m unittest discover -s scripts/migration -p 'test_*.py'
+
 # Build all country/weekend variants and update README download links.
 build-all *args:
     bash scripts/build-all.sh "$@"
@@ -32,6 +49,7 @@ test:
     typst compile --root . --input year=2026 --input standup=true --input preset=blue tests/render.typ .tmp/planner-config-blue.pdf
     typst compile --root . --input year=2026 --input standup=true --input preset=underline tests/render.typ .tmp/planner-config-underline.pdf
     typst compile --root . --input year=2026 --input standup=true --input preset=plain tests/render.typ .tmp/planner-config-plain.pdf
+    just migration-test
 
 # Check shell syntax and compile both planner configurations.
 check: lint test

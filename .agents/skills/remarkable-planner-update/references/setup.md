@@ -1,48 +1,29 @@
-# Local dependencies
+# Native migration dependencies
 
-Run from the planner repository root. Use `.tmp/` for intermediate files and
-`output/pdf/` for final artifacts; choose unused paths for each migration.
-
-- Typst generates replacement templates; Poppler supplies `pdfinfo`, `pdftotext`,
-  and `pdftoppm` for inspection.
-- `remarkable` downloads and renders documents and exports local `.rm` strokes.
-  Check live `--help`; do not assume an upload subcommand exists.
-- Python uses a project-root `.venv` through `uv`. Do not install globally.
+Run from the planner repository root. `just migration-setup` installs the pinned
+Click, pypdf, and PyMuPDF dependencies into the existing project-local `.venv`,
+creating that environment only when it is absent. Python commands run through uv.
+Typst is required for replacement backgrounds; rmapi is required for cloud steps.
 
 ```bash
-# Create .venv only when absent; preserve any existing environment.
-uv venv
-uv pip install pypdf cairosvg
+just migration-setup
+just migrate --help
+just migration-test
 ```
 
-The assembly helper is exercised with pypdf 6.19.0. Vector conversion is exercised
-with CairoSVG 2.9.1. Inspect installed versions and current APIs before adapting it.
-For example, current `compress_identical_objects()` uses `remove_duplicates` and
-`remove_unreferenced`; its older parameter names are deprecated.
+Use the maintained `ddvk/rmapi` client. The working flow was exercised with v0.0.35.
+Reuse its existing authentication. Set `RMAPI_BIN` to the executable, or pass
+`--rmapi PATH` during preparation; the run saves that choice. The runner does not
+install or pair a client, print credentials, or modify the remarkable CLI.
 
-On macOS, CairoSVG may fail to discover an installed Cairo library. Check the
-actual library location. If using Homebrew, obtain its prefix with
-`brew --prefix cairo`. Set `DYLD_FALLBACK_LIBRARY_PATH` inside the Python process
-**before importing CairoSVG**, using that discovered prefix plus `/lib`, while
-preserving existing search paths. A shell wrapper can strip `DYLD_*` environment
-variables before launching Python. Do not hardcode a machine-specific prefix.
-
-## Check the helper
+The background assembler remains in `scripts/assemble.py` within this skill.
+Its tests can be run with:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 uv run python -m unittest discover \
-  -s .agents/skills/remarkable-planner-update/scripts -p 'test_*.py'
+uv run --python .venv/bin/python python -m unittest discover -s .agents/skills/remarkable-planner-update/scripts -p 'test_*.py'
 ```
 
-Import `assemble.py` from a task-specific Python driver. It deliberately has no
-argument parser or cloud operations. Its input/output contract is documented in
-the function docstring and the assembly reference.
-
-## Official references
-
-- [pypdf merging and object cloning](https://pypdf.readthedocs.io/en/stable/user/merging-pdfs.html)
-- [pypdf page methods](https://pypdf.readthedocs.io/en/stable/modules/PageObject.html)
-- [pypdf writer methods](https://pypdf.readthedocs.io/en/stable/modules/PdfWriter.html)
-- [CairoSVG conversion API](https://cairosvg.org/documentation/)
-- [remarkable CLI](https://github.com/alexgorbatchev/remarkable-cli)
-- [maintained rmapi](https://github.com/ddvk/rmapi)
+Official references: [Click](https://click.palletsprojects.com/en/stable/),
+[pypdf](https://pypdf.readthedocs.io/en/stable/user/merging-pdfs.html),
+[Typst JSON](https://typst.app/docs/reference/data-loading/json/), and
+[rmapi](https://github.com/ddvk/rmapi).

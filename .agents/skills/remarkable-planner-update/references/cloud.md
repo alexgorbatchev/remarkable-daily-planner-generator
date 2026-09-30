@@ -1,77 +1,47 @@
-# Download and optional upload
+# Resumable transfer with rmapi
 
-Check the installed CLI's help before using commands. Use existing authentication;
-never print credentials. All commands below use user-established document names
-and paths stored in task-specific variables, not embedded personal identifiers.
+The current runner uses the user-authorized rmapi flow while remarkable CLI fixes
+are in flight. Do not substitute another tool or claim an unsupported remarkable
+upload command exists. Reuse existing rmapi authentication.
 
-## Download with remarkable
-
-```bash
-remarkable doc list --query "$SOURCE_NAME"
-remarkable doc inspect "$SOURCE_ID" --pages > "$WORK_DIR/inspection.txt"
-remarkable doc cat "$SOURCE_ID" --format pdf > "$WORK_DIR/original.pdf"
-remarkable doc sync "$SOURCE_ID" --format rm --output-dir "$WORK_DIR/strokes"
-```
-
-Resolve a unique document ID before download; never guess among duplicate titles.
-Use a fresh directory. The `pdf` export is the background PDF, not a PDF containing
-current native ink. `sync --format rm` exports separate native files, including
-zero-byte entries for empty pages. Keep the inventory's page IDs and indices.
-
-If sync times out, rerun the same command without `--force` to resume. Verify
-all expected files and sizes against the inventory; retry missing or mismatched
-files rather than accepting a partial backup. Reinspect afterward and restart
-from a fresh snapshot if the cloud document changed during the download.
-
-Render selected cloud pages for comparison using zero-based page indices:
+Prepare a reviewable result; this command downloads but does not upload:
 
 ```bash
-remarkable doc render "$SOURCE_ID" --page "$SOURCE_INDEX" \
-  --dpi 140 --output "$REFERENCE_PNG"
+just migrate prepare --source SOURCE_ID_OR_PATH --from YYYY-MM-DD --title 'NEW TITLE' --rmapi PATH_TO_RMAPI
 ```
 
-After a cloud update, one client may fail to resolve documents another can see.
-Do not interpret that as deletion. Try `--no-cache`, then use the maintained
-`rmapi` client to inspect/download. Diagnose discrepancies without modifying the
-cloud document or attempting another upload.
+The printed run directory contains `migration.json`, native backups, the
+background PDF, `page-map.json`, and preparation verification. Choose an unused
+new title. For custom headers, supply a hash-verified `--source-map`. A later
+migration should use the most recently edited document as its source.
 
-## Use rmapi when needed
-
-Obtain the current platform release from `ddvk/rmapi` using its official release
-metadata; inspect actual asset names instead of guessing URLs. Keep a temporary
-binary under `.tmp/`. The `juruen/rmapi` upstream is archived. Check current
-maintenance and protocol support before using any fork.
-
-`rmapi -ni` uses existing authentication without an interactive pairing prompt.
-Check `rmapi -ni help`, `help put`, and `help get`. Use `rmapi -ni stat` to verify
-names, IDs, and metadata. `get` downloads a native `.rmdoc` archive into the current
-directory; run it inside the task's scratch directory.
-
-An `.rmdoc` is a ZIP archive. Inspect its entries before extracting. Read its
-`.content` page mapping to connect UUID-named `.rm` files to PDF pages; do not
-assume those archive filenames are ordinal `page-NNN.rm` exports. Keep archive
-metadata and stroke files together. Do not execute any downloaded content.
-
-## Upload only with authorization for this result
-
-1. Verify the local PDF first. Use the requested distinct title as the PDF basename.
-2. Check for an existing document with that title. If one exists, verify whether it
-   is this exact completed upload; do not replace it or create a duplicate blindly.
-3. Record the original document ID and metadata. Upload the one new file to the
-   requested folder, or root if no folder was specified:
+Once uploading this result is authorized, run:
 
 ```bash
-rmapi -ni put "$OUTPUT_PDF" "$REMOTE_FOLDER"
+just migrate publish RUN_DIR
 ```
 
-4. Do not use `--force` or `--content-only` for a new-document migration. Both can
-   replace an existing document; their exact behavior depends on the CLI version.
-5. Verify the new name and a distinct ID with `stat`. Download it with `get` in a
-   scratch directory, inspect the archive, extract its PDF, and compare SHA-256
-   against the local deliverable. Verify page count and original-document presence.
-6. If upload status is ambiguous or times out, inspect the remote state before
-   retrying. Never run `put` again solely because another client cannot list it.
+Open the uploaded document on the tablet, return to My files, and let it sync.
+Then run:
 
-Report cloud verification accurately; tablet synchronization is separate and is
-not verified by a successful cloud upload. Do not upload while creating or testing
-this skill or its helper.
+```bash
+just migrate resume RUN_DIR
+just migrate status RUN_DIR
+```
+
+Resume waits if page IDs are not initialized. It attaches native strokes only
+after freshly downloading and checking both documents. Source changes require a
+new preparation so recent handwriting is not lost. Conflicting destination ink
+stops the operation. The original is never a replacement target.
+
+rmapi `put --force` deletes and recreates the separate staging document; it is
+not an in-place file merge. The runner retains a complete native staging archive
+and its tablet-generated UUIDs before that operation. It verifies the downloaded
+upload and the original afterward. If interrupted after deletion, resume restores
+the saved staging archive using normal put only when its title is absent.
+
+If an upload fails or times out, rerun the same publish/resume command with the
+same run directory. The saved upload-intent stage determines whether an existing
+matching document can be adopted. A completed resume verifies again without
+uploading twice. Never change the saved IDs, delete backups, or blindly retry
+`put --force` manually. Tablet synchronization and editing need separate observation.
