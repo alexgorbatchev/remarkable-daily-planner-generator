@@ -6,7 +6,7 @@ A customizable daily planner system designed specifically for reMarkable tablet,
 
 There are two main variants, one that excludes weekends (Sat/Sun) and one that includes them. Additionally, special dates (holidays, etc.) can be marked via a CSV file (USA and Canada, Ontario included as examples).
 
-Everything is fully configurable through `src/config.typ` if you want to generate your own version.
+Customize navigation, typography, page geometry, and writing sections through `src/config.typ`.
 
 ## Structure
 The planner generates a PDF with three main components and optional daily standup pages:
@@ -39,9 +39,9 @@ Meetings notes, etc.
 
 Standup pages are disabled by default. Enable them with `--standup` or set `enabled: true` inside `STANDUP` in `src/config.typ`. Explicit `--standup=true` or `--standup=false` flags override the config value; omitting the flag preserves it. Both `just build` and `just build-all` accept these flags.
 
-When enabled, there is one standup page per included date, with horizontal writing lines filling the space below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. Gray date links show the previous included date first, followed by upcoming dates within the planner year. They preserve the current view: Day to Day, Notes to Notes, and Standup to Standup. When disabled, Standup navigation links are omitted too.
+When enabled, there is one standup page per included date, with horizontal writing lines filling the space below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. By default, gray date links show the previous included date first, followed by upcoming dates within the planner year, and preserve the current view. Disabled Standup tabs remain visible as plain text unless `show_disabled_standup` is false.
 
-Customize the line spacing, line style, and line color through `STANDUP` in `src/config.typ`. The line count adjusts to the available page height.
+Customize line spacing, style, and color through `STANDUP` in `src/config.typ`. Set `title_show: true` to display a body heading, with configurable title text, font size, and gap. The line count adjusts to the remaining page height.
 
 ## Download
 
@@ -76,7 +76,7 @@ Pre-built PDF planners are available for direct download:
 ![Device Notes View](preview/photo-3.png)
 
 ## Configuration
-All aspects of the planner are configurable through `src/config.typ`:
+The following settings are available in `src/config.typ`:
 
 ```typst
 // Inputs and helpers
@@ -138,12 +138,43 @@ All aspects of the planner are configurable through `src/config.typ`:
   weekday_font_size: 12pt,
   // Font size for the special-day label shown beneath the weekday.
   day_label_font_size: 12pt * 60%,
+  day_label_gap: 1mm + 2pt,
   navigation_font_size: 12pt,
+  // Omit tokens to hide them; order determines their position.
+  navigation_order: ("date", "day", "notes", "standup"),
+  navigation_align: left, // left, center, or right
+  navigation_gap: 4mm,
+  notes_label: "Notes",
+  standup_label: "Standup",
+  show_disabled_standup: true,
+
+  date_order: ("year", "month", "day"),
+  date_separator: " ",
+  date_weight: "bold",
+  month_short: true,
+  day_zero_pad: true,
+  weekday_short: true,
+  year_link: true, // month and day stay plain text
+  year_link_padding: 2pt,
+
+  active_style: "box", // "box", "underline", or "none"
+  active_box_color: black,
+  active_text_color: auto, // white for boxes, inactive color otherwise
+  inactive_text_color: black,
+  active_padding: 4pt,
+  inactive_padding: 2pt,
+  active_underline_thickness: 1pt,
+  active_underline_offset: 2pt,
+  active_underline_evade: false, // continuous underline
 
   // Quick jump links (left-aligned above the main header).
   // Shows the previous included date, then upcoming dates in the current page type.
   quick_jump_show: true,
-  quick_jump_count: 5,
+  quick_jump_previous: true,
+  quick_jump_same_view: true, // false sends date links to Day pages
+  quick_jump_align: left,
+  quick_jump_padding: 2pt,
+  quick_jump_count: 5, // future dates only; zero allows previous-only navigation
   quick_jump_color: 180, // 0..255 gray level
   quick_jump_font_size: 12pt * 60%,
   quick_jump_gap: 5mm,
@@ -187,7 +218,21 @@ All aspects of the planner are configurable through `src/config.typ`:
   lines_style: "grid",
   lines_color: lines_color
 )
+
+// Optional standup heading and writing lines.
+#let STANDUP = (
+  enabled: false,
+  title_show: false,
+  title: "Standup",
+  title_font_size: 11pt,
+  title_gap: 2mm,
+  lines_height: 7mm,
+  lines_style: "dotted",
+  lines_color: lines_color,
+)
 ```
+
+Both navigation rows use `left`, `center`, or `right` alignment. `quick_jump_show: false` hides the entire gray row; `quick_jump_previous: false` hides only the back link. Tab labels and active styling apply to every daily view. Larger font sizes, labels, or padding may require increasing `height`, `quick_jump_height`, `navigation_gap`, or `day_label_gap` to preserve clearance.
 
 ## Building
 
@@ -265,9 +310,11 @@ Images go in `preview/`. With no arguments, `just preview` uses the 2026 USA bat
     ├── index.typ              # Main coordinator
     ├── lib/                   # Shared utilities
     │   ├── calendar.typ       # Date calculations
+    │   ├── date-navigator.typ # Previous and upcoming date links
     │   ├── holidays.typ       # Special dates loading + helpers
     │   ├── layout.typ         # Page layout system
     │   ├── link.typ           # Navigation links
+    │   ├── navigation.typ     # Date header and page tabs
     │   ├── options.typ        # Reads Typst CLI inputs
     │   └── sections.typ       # Shared writing sections and checkboxes
     └── views/                 # Page templates

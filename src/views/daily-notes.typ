@@ -1,6 +1,7 @@
 
 #import "../config.typ" as config
-#import "../lib/layout.typ": page-layout, page-navigation
+#import "../lib/layout.typ": page-layout
+#import "../lib/navigation.typ": page-navigation
 #import "../lib/calendar.typ": *
 #import "calendar.typ": calendar_label
 
@@ -11,13 +12,13 @@
 #set block(spacing: 0pt)
 
 // Function to create a configurable grid pattern that fits and centers in available space
-#let grid-pattern() = {
+#let grid-pattern(header: config.header) = {
   // Calculate available content area
   let content_width = config.page.width - 2 * config.page.margin_x
   let content_height = config.page.height - 2 * config.page.margin_y
   
   // Subtract header height
-  let available_height = content_height - config.header.height
+  let available_height = content_height - header.height
   
   // Calculate how many grid cells fit in each direction
   let cells_width = calc.floor(content_width / config.daily_notes.lines_size)
@@ -46,13 +47,15 @@
   year: int,
   month: int,
   day: int,
+  header: config.header,
 ) = {
   page-layout(
     year: year, 
     month: month, 
     day: day,
     label-fn: make-notes-label, // Use notes label instead of day label
-    header-content: page-navigation(year, month, day, "notes", calendar_label),
-    main-content: grid-pattern()
+    settings: header,
+    header-content: page-navigation(year, month, day, "notes", calendar_label, settings: header),
+    main-content: grid-pattern(header: header)
   )
 }

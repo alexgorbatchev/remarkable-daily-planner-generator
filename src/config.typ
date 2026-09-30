@@ -62,17 +62,49 @@
   date_font_size: 12pt,
   weekday_font_size: 12pt,
 
-  // Font size for the special-day label shown next to the weekday.
-  // Default: 80% of `weekday_font_size`.
+  // Special-date label beneath the weekday.
   day_label_font_size: 12pt * 60%,
+  day_label_gap: 1mm + 2pt,
 
   navigation_font_size: 12pt,
+  navigation_order: ("date", "day", "notes", "standup"),
+  navigation_align: left,
+  navigation_gap: 4mm,
+  notes_label: "Notes",
+  standup_label: "Standup",
+  show_disabled_standup: true,
+
+  date_order: ("year", "month", "day"),
+  date_separator: " ",
+  date_weight: "bold",
+  month_short: true,
+  day_zero_pad: true,
+  weekday_short: true,
+  year_link: true,
+  year_link_padding: 2pt,
+
+  // Active style: "box", "underline", or "none".
+  active_style: "box",
+  active_box_color: black,
+  // auto chooses white for boxes and the inactive text color otherwise.
+  active_text_color: auto,
+  inactive_text_color: black,
+  active_padding: 4pt,
+  inactive_padding: 2pt,
+  active_underline_thickness: 1pt,
+  active_underline_offset: 2pt,
+  active_underline_evade: false,
 
   // Quick jump links row, left-aligned above the main header.
   // Shows the previous included date, then upcoming dates in the current page type.
   quick_jump_show: true,
+  quick_jump_previous: true,
+  quick_jump_same_view: true,
+  quick_jump_align: left,
+  quick_jump_padding: 2pt,
 
-  // Number of upcoming dates to show, starting from tomorrow.
+  // Number of upcoming dates, excluding the optional previous-date link.
+  // Zero permits previous-only navigation; quick_jump_show hides the whole row.
   quick_jump_count: 5,
 
   // 0..255 gray level for the quick jump link text.
@@ -169,6 +201,10 @@
 // Standup writing lines fill the available space below the daily navigation.
 #let STANDUP = (
   enabled: false,
+  title_show: false,
+  title: "Standup",
+  title_font_size: 11pt,
+  title_gap: 2mm,
   lines_height: 7mm,
   lines_style: "dotted",
   lines_color: lines_color,

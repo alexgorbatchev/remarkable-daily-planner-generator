@@ -4,6 +4,8 @@
 
 #let CALENDAR_STRINGS = config.calendar.strings
 
+#let fmt2(n) = if n < 10 { "0" + str(n) } else { str(n) }
+
 // Leap year calculation
 #let is-leap(y) = (calc.rem(y, 4) == 0 and calc.rem(y, 100) != 0) or calc.rem(y, 400) == 0
 

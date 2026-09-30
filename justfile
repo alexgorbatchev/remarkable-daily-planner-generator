@@ -29,6 +29,9 @@ test:
     typst compile --root . --input standup=true tests/navigation.typ .tmp/navigation-standup-test.pdf
     typst compile --root . --input year=2026 --input standup=false src/index.typ .tmp/planner-test.pdf
     typst compile --root . --input year=2026 --input standup=true src/index.typ .tmp/planner-standup-test.pdf
+    typst compile --root . --input year=2026 --input standup=true --input preset=blue tests/render.typ .tmp/planner-config-blue.pdf
+    typst compile --root . --input year=2026 --input standup=true --input preset=underline tests/render.typ .tmp/planner-config-underline.pdf
+    typst compile --root . --input year=2026 --input standup=true --input preset=plain tests/render.typ .tmp/planner-config-plain.pdf
 
 # Check shell syntax and compile both planner configurations.
 check: lint test
