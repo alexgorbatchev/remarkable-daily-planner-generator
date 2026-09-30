@@ -3,6 +3,28 @@
 #import "link.typ": styled_link
 #import "holidays.typ" as special_dates
 
+// Same-date navigation shared by all three daily page types.
+#let page-navigation(year, month, day, current, calendar-target) = {
+  let destinations = (
+    (kind: "day", title: "Day", target: make-day-label),
+    (kind: "notes", title: "Notes", target: make-notes-label),
+  )
+  if config.STANDUP_ENABLED {
+    destinations.push((kind: "standup", title: "Standup", target: make-standup-label))
+  }
+  let links = ()
+  for destination in destinations {
+    if destination.kind != current {
+      let target = destination.target
+      links.push(styled_link(label(target(year, month, day)), [#destination.title]))
+    }
+  }
+  links.push(styled_link(label(calendar-target), [#year]))
+  text(size: config.header.navigation_font_size)[
+    #grid(columns: links.len(), align: left + bottom, column-gutter: 5mm, ..links)
+  ]
+}
+
 #let next-day(year, month, day) = {
   if day < days-in-month(year, month) {
     (year: year, month: month, day: day + 1)
@@ -90,11 +112,12 @@
 
   let special_date = special_dates.special-date-entry(config.special_dates, month, day)
   let weekday_label = if (special_date != none) and (special_date.label != none) and (special_date.label != "") {
-    [
-      #day_name
-      #h(1mm)
-      #text(size: config.header.day_label_font_size)[#special_date.label]
-    ]
+    grid(
+      columns: (auto,),
+      row-gutter: 0pt,
+      [#day_name],
+      text(size: config.header.day_label_font_size)[#special_date.label],
+    )
   } else {
     [#day_name]
   }
@@ -118,12 +141,12 @@
             columns: (1fr, auto),
             rows: (auto,),
             row-gutter: 0mm,
-            align: (left, right + bottom),
+            align: (left, right + top),
             // Left side: Date and day name
             [
               #grid(
                 columns: (auto, auto),
-                align: (left + bottom, left + bottom),
+                align: (left + top, left + top),
                 column-gutter: 5mm,
                 [
                   #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]

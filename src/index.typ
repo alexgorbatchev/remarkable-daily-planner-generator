@@ -2,6 +2,7 @@
 #import "views/calendar.typ": *
 #import "views/daily-planner.typ": *
 #import "views/daily-notes.typ": *
+#import "views/daily-standup.typ": daily-standup
 
 #set text(font: config.font)
 
@@ -38,6 +39,19 @@
     #if config.calendar.weekends or (monday-index(config.year, month, day) < 5) [
       #pagebreak()
       #daily-notes(year: config.year, month: month, day: day)
+    ]
+  ]
+]
+
+// Append standups as a third chronological block, preserving Day/Notes positions.
+#if config.STANDUP_ENABLED [
+  #for month in range(1, 13) [
+    #let days_in_month = days-in-month(config.year, month)
+    #for day in range(1, days_in_month + 1) [
+      #if config.calendar.weekends or (monday-index(config.year, month, day) < 5) [
+        #pagebreak()
+        #daily-standup(config.year, month, day)
+      ]
     ]
   ]
 ]

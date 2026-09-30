@@ -98,16 +98,13 @@
   }
 }
 
-// Generate day label string for consistent linking
-#let make-day-label(year, month, day) = {
+// Format dated page targets consistently across all daily page types.
+#let make-date-label(prefix, year, month, day) = {
   let month_str = if month < 10 { "0" + str(month) } else { str(month) }
   let day_str = if day < 10 { "0" + str(day) } else { str(day) }
-  "day-" + str(year) + "-" + month_str + "-" + day_str
+  prefix + "-" + str(year) + "-" + month_str + "-" + day_str
 }
 
-// Generate notes label string for consistent linking
-#let make-notes-label(year, month, day) = {
-  let month_str = if month < 10 { "0" + str(month) } else { str(month) }
-  let day_str = if day < 10 { "0" + str(day) } else { str(day) }
-  "notes-" + str(year) + "-" + month_str + "-" + day_str
-}
+#let make-day-label(year, month, day) = make-date-label("day", year, month, day)
+#let make-notes-label(year, month, day) = make-date-label("notes", year, month, day)
+#let make-standup-label(year, month, day) = make-date-label("standup", year, month, day)

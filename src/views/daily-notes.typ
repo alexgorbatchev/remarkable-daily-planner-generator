@@ -1,8 +1,7 @@
 
 #import "../config.typ" as config
-#import "../lib/layout.typ": page-layout
+#import "../lib/layout.typ": page-layout, page-navigation
 #import "../lib/calendar.typ": *
-#import "../lib/link.typ": styled_link
 #import "calendar.typ": calendar_label
 
 // Remove default paragraph spacing  
@@ -53,19 +52,7 @@
     month: month, 
     day: day,
     label-fn: make-notes-label, // Use notes label instead of day label
-    header-right: [
-      #grid(
-        columns: (auto, auto),
-        align: (left + bottom, left + bottom),
-        column-gutter: 5mm,
-        [
-          #text(size: config.header.navigation_font_size)[#styled_link(label(make-day-label(year, month, day)), [Day])]
-        ],
-        [
-          #text(size: config.header.navigation_font_size)[#styled_link(label(calendar_label), [#year])]
-        ],
-      )
-    ],
+    header-right: page-navigation(year, month, day, "notes", calendar_label),
     main-content: grid-pattern()
   )
 }

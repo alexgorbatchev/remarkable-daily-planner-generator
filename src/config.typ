@@ -165,3 +165,17 @@
   lines_style: "grid",
   lines_color: lines_color
 )
+
+// Standup writing lines fill the available space below the title.
+#let STANDUP = (
+  enabled: false,
+  title: "Standup",
+  title_font_size: 11pt,
+  title_gap: 2mm,
+  lines_height: 7mm,
+  lines_style: "dotted",
+  lines_color: lines_color,
+)
+
+// Explicit CLI input overrides the configured default.
+#let STANDUP_ENABLED = options.input-bool("standup", default: STANDUP.enabled)
