@@ -16,13 +16,13 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 #   - "N:NAME.png"   -> also supported (the .png suffix is ignored)
 #   - "PDF:N:NAME"   -> renders page N from PDF into ${OUT_DIR}/NAME.png
 PAGES=(
-  "planner-no-weekends-2026.pdf:1:calendar-view--no-weekends"
-  "planner-weekends-2026.pdf:1:calendar-view--weekends"
-  "planner-no-weekends-2026.pdf:2:day-view"
-  "planner-no-weekends-2026.pdf:263:notes-view"
+  "planner-no-weekends-usa-2026.pdf:1:calendar-view--no-weekends"
+  "planner-weekends-usa-2026.pdf:1:calendar-view--weekends"
+  "planner-no-weekends-usa-2026.pdf:2:day-view"
+  "planner-no-weekends-usa-2026.pdf:263:notes-view"
 )
 
-OUT_DIR="${OUT_DIR:-${SCRIPT_DIR}}"
+OUT_DIR="${OUT_DIR:-${ROOT_DIR}/preview}"
 DPI="${DPI:-200}"
 
 # Optional: add a blurred shadow around the page on a transparent background.
@@ -34,48 +34,36 @@ SHADOW_X="${SHADOW_X:-0}"
 SHADOW_Y="${SHADOW_Y:-10}"
 SHADOW_PAD="${SHADOW_PAD:-24}"          # pixels of transparent padding around page before shadow
 
-DEFAULT_SOURCE_PDF="2026.pdf"
+DEFAULT_SOURCE_PDF="planner-no-weekends-usa-2026.pdf"
 
 # You can pass the PDF file name (preferred) or a full path as the first arg,
 # or set PDF_PATH to override everything.
 PDF_PATH="${PDF_PATH:-}"
 
 usage() {
-  cat <<'EOF'
-Usage:
-  ./preview/generate.sh [SOURCE_PDF] [PAGE_SPEC...]
-
-Environment:
-  PDF_PATH=...       (optional, overrides arg)
-  OUT_DIR=...        (optional, defaults to ./preview)
-  DPI=200            (optional)
-  SHADOW=true        (optional, true|false)
-  SHADOW_OPACITY=35  (optional, 0..100)
-  SHADOW_BLUR=14     (optional)
-  SHADOW_X=0         (optional)
-  SHADOW_Y=10        (optional)
-  SHADOW_PAD=24      (optional, pixels)
-
-Edits:
-  - Set PAGES=(...) inside the script.
-    Use "N:NAME" to control the output file name per page.
-
-Args:
-  PAGE_SPEC formats:
-    - N
-    - N:NAME
-    - N:NAME.png
-    - PDF:N:NAME
-
-Examples:
-  ./preview/generate.sh                 # uses build/2026.pdf
-  ./preview/generate.sh 2026.pdf
-  ./preview/generate.sh build/planner-2026.pdf
-  ./preview/generate.sh 2026.pdf 1:calendar 2:jan 263:jan-01-notes
-  ./preview/generate.sh 2026.pdf:1:calendar 2026.pdf:2:jan 2026.pdf:263:jan-01-notes
-  DPI=300 ./preview/generate.sh 2026.pdf
-  SHADOW=true ./preview/generate.sh 2026.pdf
-EOF
+  printf '%s\n' \
+    'Usage:' \
+    '  just preview [SOURCE_PDF] [PAGE_SPEC...]' \
+    '' \
+    'Environment:' \
+    '  PDF_PATH=...       (optional, overrides arg)' \
+    '  OUT_DIR=...        (optional, defaults to repo preview/)' \
+    '  DPI=200            (optional)' \
+    '  SHADOW=true        (optional, true|false)' \
+    '  SHADOW_OPACITY=35  (optional, 0..100)' \
+    '  SHADOW_BLUR=14     (optional)' \
+    '  SHADOW_X=0         (optional)' \
+    '  SHADOW_Y=10        (optional)' \
+    '  SHADOW_PAD=24      (optional, pixels)' \
+    '' \
+    'Page specs: N, N:NAME, N:NAME.png, PDF:N:NAME' \
+    'With no page specs, renders the PAGES list in scripts/preview.sh.' \
+    'Supply page specs to render pages from a custom source PDF.' \
+    '' \
+    'Examples:' \
+    '  just preview' \
+    '  just preview build/planner-2026.pdf 1:calendar 2:day 263:notes' \
+    '  DPI=300 SHADOW=false just preview build/planner-2026.pdf 2:day'
 }
 
 die() {

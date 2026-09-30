@@ -5,21 +5,30 @@
 
 set -euo pipefail  # Exit on any error, undefined variables, pipe failures
 
-usage() {
-  cat <<'EOF'
-Usage:
-  ./build.sh YEAR
-  ./build.sh --year YEAR
-  ./build.sh --year YEAR [--weekends=true|false] [--country=usa] [--open] [--watch]
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT_DIR}"
 
-Examples:
-  ./build.sh 2026
-  ./build.sh --year 2026
-  ./build.sh --year 2026 --weekends=true
-  ./build.sh --year 2026 --country=usa
-  ./build.sh --year 2026 --open
-  ./build.sh --year 2026 --watch
-EOF
+usage() {
+  printf '%s\n' \
+    'Usage:' \
+    '  just build YEAR [OPTIONS]' \
+    '  scripts/build.sh --year YEAR [OPTIONS]' \
+    '' \
+    'Options:' \
+    '  --weekends=true|false   Include weekends (default: false)' \
+    '  --country=COUNTRY       Special dates country (default: usa)' \
+    '  --standup               Include daily standup pages' \
+    '  --standup=true|false    Override STANDUP.enabled from config' \
+    '  --open                  Open the generated PDF' \
+    '  --watch                 Rebuild when source files change' \
+    '' \
+    'Without --standup, the build uses STANDUP.enabled from config.' \
+    '' \
+    'Examples:' \
+    '  just build 2026' \
+    '  just build 2026 --standup --open' \
+    '  just build 2026 --standup=false' \
+    '  just build 2026 --standup --watch'
 }
 
 die() {
@@ -32,6 +41,7 @@ WEEKENDS="false"
 COUNTRY="usa"
 OPEN="false"
 WATCH="false"
+STANDUP=""
 
 # Args check first
 while [[ $# -gt 0 ]]; do
@@ -66,6 +76,15 @@ while [[ $# -gt 0 ]]; do
       COUNTRY="${1#--country=}"
       shift
       ;;
+    --standup)
+      STANDUP="true"
+      shift
+      ;;
+    --standup=*)
+      STANDUP="${1#--standup=}"
+      [[ "${STANDUP}" == "true" || "${STANDUP}" == "false" ]] || die "--standup requires true or false"
+      shift
+      ;;
     --open)
       OPEN="true"
       shift
@@ -95,6 +114,11 @@ done
 [[ -n "${YEAR}" ]] || { usage >&2; exit 2; }
 [[ "${YEAR}" =~ ^[0-9]{4}$ ]] || die "YEAR must be a 4-digit number (e.g. 2026)"
 
+TYPST_INPUTS=(--root . --input "year=${YEAR}" --input "weekends=${WEEKENDS}" --input "country=${COUNTRY}")
+if [[ -n "${STANDUP}" ]]; then
+  TYPST_INPUTS+=(--input "standup=${STANDUP}")
+fi
+
 echo "Building Daily Planner..."
 
 # Deps check (after args)
@@ -113,21 +137,21 @@ if [[ "${WATCH}" == "true" ]]; then
 
   if [[ "${OPEN}" == "true" ]]; then
     command -v open &> /dev/null || die "Missing dependency: open (macOS)"
-    typst compile --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
+    typst compile "${TYPST_INPUTS[@]}" src/index.typ "${OUTPUT_PATH}"
     open "${OUTPUT_PATH}"
   fi
 
-  typst watch --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
+  typst watch "${TYPST_INPUTS[@]}" src/index.typ "${OUTPUT_PATH}"
 else
   # Compile the main document
-  typst compile --root . --input year="${YEAR}" --input weekends="${WEEKENDS}" --input country="${COUNTRY}" src/index.typ "${OUTPUT_PATH}"
+  typst compile "${TYPST_INPUTS[@]}" src/index.typ "${OUTPUT_PATH}"
 
   echo "✓ Build successful!"
   echo "  Generated ${OUTPUT_PATH}"
 
   # Show file size and page count
   if command -v mdls &> /dev/null; then
-    pages=$(mdls -name kMDItemNumberOfPages "${OUTPUT_PATH}" 2>/dev/null | grep -Eo '[0-9]+' | head -n 1 || echo "unknown")
+    pages=$(mdls -name kMDItemNumberOfPages "${OUTPUT_PATH}" 2>/dev/null | rg -o '[0-9]+' | head -n 1 || echo "unknown")
     echo "  Pages: ${pages}"
   fi
 

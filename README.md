@@ -9,9 +9,9 @@ There are two main variants, one that excludes weekends (Sat/Sun) and one that i
 Everything is fully configurable through `src/config.typ` if you want to generate your own version.
 
 ## Structure
-The planner generates a PDF with three main components:
+The planner generates a PDF with three main components and optional daily standup pages:
 
-Pages are grouped to make day-to-day navigation easy: all Daily Planner pages are generated as one chronological block (so you can flip back/forward between days), followed by all Daily Notes pages as a separate chronological block.
+Pages are grouped to make day-to-day navigation easy: all Daily Planner pages form one chronological block, followed by all Daily Notes pages, then Daily Standup pages when enabled. Each block follows the same weekend setting. Appending standups keeps the existing Day and Notes page positions unchanged.
 
 ### 1. Annual Calendar View (1 page)
 - Year overview with navigation to any day
@@ -26,14 +26,22 @@ Structured for engineering workflows:
 - Secondary: Other tasks, typically personal
 
 Each page includes:
-- Date and week number for sprint planning
-- Navigation links to corresponding notes and calendar
+- Date and weekday
+- Navigation links to the same date's other page types and the annual calendar
 - Configurable line spacing for different writing preferences
 
-Special dates (from CSV) can also be visually marked in the calendar view and shown in the daily header (e.g. `Friday New Year's Day`).
+Special dates (from CSV) can also be visually marked in the calendar view and shown beneath the weekday in the daily header.
 
 ### 3. Daily Notes Pages
 Meetings notes, etc.
+
+### 4. Daily Standup Pages
+
+Standup pages are disabled by default. Enable them with `--standup` or set `enabled: true` inside `STANDUP` in `src/config.typ`. Explicit `--standup=true` or `--standup=false` flags override the config value; omitting the flag preserves it. Both `just build` and `just build-all` accept these flags.
+
+When enabled, there is one standup page per included date, with a Standup heading and horizontal writing lines filling the remaining page. Links return to that date's Day and Notes pages or the annual calendar. Upcoming-date links lead to Day pages, as they do elsewhere in the planner. When disabled, Standup navigation links are omitted too.
+
+Customize the title, title spacing, line spacing, line style, and line color through `STANDUP` in `src/config.typ`. The line count adjusts to the available page height.
 
 ## Download
 
@@ -76,7 +84,7 @@ All aspects of the planner are configurable through `src/config.typ`:
 #import "lib/holidays.typ" as special_dates_lib
 
 // Year for the planner (passed via `--input year=...`)
-#let year = int(sys.inputs.at("year", default: "2025"))
+#let year = int(sys.inputs.at("year", default: "2026"))
 
 // Weekends are excluded by default.
 // Set `--input weekends=true` (or use `--weekends=true` in scripts) to include weekends.
@@ -128,7 +136,7 @@ All aspects of the planner are configurable through `src/config.typ`:
   top_gap: 4mm,
   date_font_size: 12pt,
   weekday_font_size: 12pt,
-  // Font size for the special-day label shown next to the weekday.
+  // Font size for the special-day label shown beneath the weekday.
   day_label_font_size: 12pt * 60%,
   navigation_font_size: 12pt,
 
@@ -165,7 +173,7 @@ All aspects of the planner are configurable through `src/config.typ`:
     checkbox_show: true,
     // Number of checkboxes per line (default: 1). When >1, checkboxes are
     // evenly spaced across the row and left-aligned within each column.
-    columns: 1,
+    columns: 2,
     checkbox_size: 4mm,
     checkbox_color: 200
   ),
@@ -183,27 +191,41 @@ All aspects of the planner are configurable through `src/config.typ`:
 
 ## Building
 
+Install [Typst](https://typst.app/open-source/#download) and [just](https://just.systems/). Run `just` to list commands. The recipes forward arguments to the Bash scripts in `scripts/`.
+
 ```bash
 # Generate the complete planner using the build script.
-./build.sh 2026
+just build 2026
+
+# Include standup pages and open the planner.
+just build 2026 --standup --open
+
+# Disable standups even when enabled in config.
+just build 2026 --standup=false
+
+# Include standups in all country/weekend variants.
+just build-all 2026 --standup
 
 # Include weekends.
-./build.sh --year=2026 --weekends=true
+just build 2026 --weekends=true
 
 # Select special dates country (default: usa).
-./build.sh --year=2026 --country=usa
+just build 2026 --country=usa
 
 # Disable special date markings.
-./build.sh --year=2026 --country=none
+just build 2026 --country=none
 
 # Open the generated PDF after building.
-./build.sh --year=2026 --open
+just build 2026 --open
 
 # Watch for changes (auto-regenerate on save).
-./build.sh --year=2026 --watch
+just build 2026 --watch
 
 # Compile directly with Typst.
 typst compile --root . --input year=2026 src/index.typ build/planner-2026.pdf
+
+# Include standups (direct Typst).
+typst compile --root . --input year=2026 --input standup=true src/index.typ build/planner-2026.pdf
 
 # Watch directly with Typst.
 typst watch --root . --input year=2026 src/index.typ build/planner-2026.pdf
@@ -215,16 +237,27 @@ typst compile --root . --input year=2026 --input weekends=true src/index.typ bui
 typst compile --root . --input year=2026 --input country=usa src/index.typ build/planner-2026.pdf
 ```
 
-This creates a PDF ready for printing or digital use.
+Single builds write `build/planner-YEAR.pdf`. `--open` opens the PDF in the default macOS app. Batch builds write six country/weekend variants and update the download links above; they require [ripgrep](https://github.com/BurntSushi/ripgrep).
+
+To render images, install [Poppler](https://poppler.freedesktop.org/) (`pdftoppm`) and [ImageMagick](https://imagemagick.org/) (`magick`, required for the default shadows):
+
+```bash
+just preview build/planner-2026.pdf 1:calendar 2:day 263:notes
+```
+
+Images go in `preview/`. With no arguments, `just preview` uses the 2026 USA batch PDFs. Use `just preview --help` for page specs, resolution, and shadow settings. See [AGENTS.md](AGENTS.md) for validation commands.
 
 ## File Structure
 
 ```
 .
-├── build.sh                   # Build a single planner PDF
-├── build-all.sh               # Build all variants + update README links
-├── build/                     # Generated PDFs (ignored/optional to commit)
-├── preview/                   # Preview images + preview tooling
+├── justfile                   # Build, preview, and validation commands
+├── scripts/
+│   ├── build.sh               # Build a single planner PDF
+│   ├── build-all.sh           # Build all variants + update README links
+│   └── preview.sh             # Render selected PDF pages as PNGs
+├── build/                     # Generated PDFs; published variants are tracked
+├── preview/                   # Preview images and device photos
 ├── dates-YYYY-usa.csv         # Special dates (example)
 ├── dates-YYYY-ca-on.csv       # Special dates (example)
 └── src/
@@ -235,11 +268,13 @@ This creates a PDF ready for printing or digital use.
     │   ├── holidays.typ       # Special dates loading + helpers
     │   ├── layout.typ         # Page layout system
     │   ├── link.typ           # Navigation links
-    │   └── options.typ        # Reads Typst CLI inputs
+    │   ├── options.typ        # Reads Typst CLI inputs
+    │   └── sections.typ       # Shared writing sections and checkboxes
     └── views/                 # Page templates
         ├── calendar.typ       # Annual calendar view
         ├── daily-planner.typ  # Daily task planning
-        └── daily-notes.typ    # Notes pages
+        ├── daily-notes.typ    # Notes pages
+        └── daily-standup.typ  # Daily standup pages
 ```
 
 ## License

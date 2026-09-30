@@ -3,14 +3,19 @@
 set -euo pipefail
 set +H 2>/dev/null || true
 
-usage() {
-  cat <<'EOF'
-Usage:
-  ./build-all.sh YEAR
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "${ROOT_DIR}"
 
-Examples:
-  ./build-all.sh 2026
-EOF
+usage() {
+  printf '%s\n' \
+    'Usage:' \
+    '  just build-all YEAR [--standup|--standup=true|--standup=false]' \
+    '' \
+    'Without --standup, the build uses STANDUP.enabled from config.' \
+    '' \
+    'Examples:' \
+    '  just build-all 2026' \
+    '  just build-all 2026 --standup'
 }
 
 die() {
@@ -19,6 +24,7 @@ die() {
 }
 
 YEAR=""
+STANDUP=""
 
 # Args check first
 while [[ $# -gt 0 ]]; do
@@ -31,6 +37,15 @@ while [[ $# -gt 0 ]]; do
       shift
       [[ $# -gt 0 ]] || die "--year requires a value"
       YEAR="$1"
+      shift
+      ;;
+    --standup)
+      STANDUP="true"
+      shift
+      ;;
+    --standup=*)
+      STANDUP="${1#--standup=}"
+      [[ "${STANDUP}" == "true" || "${STANDUP}" == "false" ]] || die "--standup requires true or false"
       shift
       ;;
     --)
@@ -90,15 +105,16 @@ update_readme() {
   local year="$1"
   local readme="README.md"
 
-  [[ -f "${readme}" ]] || die "README.md not found (run from repo root)"
-  grep -q '<!-- generated -->' "${readme}" || die "README.md missing <!-- generated --> marker"
-  grep -q '<!-- /generated -->' "${readme}" || die "README.md missing <!-- /generated --> marker"
+  [[ -f "${readme}" ]] || die "README.md not found in repo root"
+  rg -q '<!-- generated -->' "${readme}" || die "README.md missing <!-- generated --> marker"
+  rg -q '<!-- /generated -->' "${readme}" || die "README.md missing <!-- /generated --> marker"
 
   local tmp
-  tmp="${readme}.tmp.$$"
+  mkdir -p .tmp
+  tmp=".tmp/${readme}.tmp.$$"
 
   local block_tmp
-  block_tmp="${readme}.generated.$$"
+  block_tmp=".tmp/${readme}.generated.$$"
 
   # Build the generated block from the same variant definitions.
   : > "${block_tmp}"
@@ -160,11 +176,11 @@ build_variant() {
   local weekends="$2"  # true|false
   local out="$3"
 
-  typst compile --root . \
-    --input year="${YEAR}" \
-    --input weekends="${weekends}" \
-    --input country="${country}" \
-    src/index.typ "${out}"
+  local inputs=(--root . --input "year=${YEAR}" --input "weekends=${weekends}" --input "country=${country}")
+  if [[ -n "${STANDUP}" ]]; then
+    inputs+=(--input "standup=${STANDUP}")
+  fi
+  typst compile "${inputs[@]}" src/index.typ "${out}"
 
   echo "✓ ${out}"
 }
