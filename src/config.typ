@@ -57,7 +57,9 @@
 // Header configuration
 #let header = (
   height: 15mm,
-  date_font_size: 24pt,
+  // Blank space above the navigation row for the top toolbar.
+  top_gap: 4mm,
+  date_font_size: 12pt,
   weekday_font_size: 12pt,
 
   // Font size for the special-day label shown next to the weekday.
@@ -66,7 +68,7 @@
 
   navigation_font_size: 12pt,
 
-  // Quick jump links row (second header row).
+  // Quick jump links row, right-aligned above the main header.
   // Shows upcoming dates as links to their Day pages.
   quick_jump_show: true,
 
@@ -83,6 +85,7 @@
   quick_jump_gap: 5mm,
 
   // Fixed height for the quick jump row.
+  // Reserve this space even when links are hidden, to clear the top toolbar.
   quick_jump_height: 4mm,
 
   // Label format for each quick jump date.
@@ -90,7 +93,7 @@
   quick_jump_format: "{dow} {day}",
 
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
-  menu_margin_left: 10mm,
+  menu_margin_left: 5mm,
 
   // When your menu button is at the top-left corner, use 10mm, otherwise 5mm
   menu_margin_right: 5mm

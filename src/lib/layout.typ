@@ -37,11 +37,6 @@
   let count = config.header.quick_jump_count
   if count <= 0 { return none }
 
-  let columns = ()
-  for _ in range(0, count) {
-    columns.push(auto)
-  }
-
   let cells = ()
   let cur = (year: year, month: month, day: day)
 
@@ -59,19 +54,17 @@
     let target = label(make-day-label(cur.year, cur.month, cur.day))
 
     cells.push(
-      table.cell(align: left)[
+      grid.cell(align: left)[
         #set text(size: config.header.quick_jump_font_size, fill: luma(config.header.quick_jump_color))
         #styled_link(target, [#label_text])
       ]
     )
   }
 
-  for _ in range(cells.len(), count) {
-    cells.push(table.cell[])
-  }
+  if cells.len() == 0 { return none }
 
-  table(
-    columns: columns,
+  grid(
+    columns: cells.len(),
     stroke: none,
     inset: 0pt,
     align: left,
@@ -92,7 +85,6 @@
 ) = {
   let day_name = get-weekday(year, month, day, short: false)
   let month_abbrev = get-month(month, short: true)
-  let week_num = get-week-number(year, month, day)
 
   let quick_jump = quick-jump-row(year, month, day)
 
@@ -118,23 +110,6 @@
     // Header row with fixed height and top alignment
     align(top)[
       #{
-        let weekday_cell_content = if quick_jump != none {
-          grid(
-            columns: (auto,),
-            rows: (config.header.quick_jump_height, auto),
-            row-gutter: 0mm,
-            align: left,
-            grid.cell(align: left + top)[
-              #quick_jump
-            ],
-            grid.cell(align: left + bottom)[
-              #text(size: config.header.weekday_font_size)[#weekday_label]
-            ],
-          )
-        } else {
-          text(size: config.header.weekday_font_size)[#weekday_label]
-        }
-
         let header_main = pad(
           left: config.header.menu_margin_left - config.page.margin_x,
           right: config.header.menu_margin_right - config.page.margin_x,
@@ -154,7 +129,7 @@
                   #text(size: config.header.date_font_size, weight: "bold")[#month_abbrev #day]
                 ],
                 [
-                  #weekday_cell_content
+                  #text(size: config.header.weekday_font_size)[#weekday_label]
                 ],
               )
             ],
@@ -163,7 +138,19 @@
           )
         ]
 
-        header_main
+        pad(
+          top: config.header.top_gap,
+          grid(
+            columns: (1fr,),
+            rows: (config.header.quick_jump_height, auto),
+            row-gutter: 0mm,
+            pad(
+              right: config.header.menu_margin_right - config.page.margin_x,
+              align(right + top, quick_jump),
+            ),
+            header_main,
+          ),
+        )
       }
       
       #label(link_target)

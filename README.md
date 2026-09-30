@@ -124,25 +124,28 @@ All aspects of the planner are configurable through `src/config.typ`:
 // Header configuration
 #let header = (
   height: 15mm,
-  date_font_size: 24pt,
+  // Blank space above the navigation row for the top toolbar.
+  top_gap: 4mm,
+  date_font_size: 12pt,
   weekday_font_size: 12pt,
   // Font size for the special-day label shown next to the weekday.
   day_label_font_size: 12pt * 60%,
   navigation_font_size: 12pt,
 
-  // Quick jump links (shown above the weekday in the header).
+  // Quick jump links (right-aligned above the main header).
   // Shows upcoming dates as links to their Day pages.
   quick_jump_show: true,
   quick_jump_count: 5,
   quick_jump_color: 180, // 0..255 gray level
   quick_jump_font_size: 12pt * 60%,
   quick_jump_gap: 5mm,
+  // Navigation row height, reserved even when links are hidden.
   quick_jump_height: 4mm,
   // Supported placeholders: {mon}, {month}, {day}, {dd}, {m}, {mm}, {dow}, {weekday}
   quick_jump_format: "{dow} {day}",
 
   // When your menu button is at the top-right corner, use 10mm, otherwise 5mm
-  menu_margin_left: 10mm,
+  menu_margin_left: 5mm,
   // When your menu button is at the top-left corner, use 10mm, otherwise 5mm
   menu_margin_right: 5mm
 )
