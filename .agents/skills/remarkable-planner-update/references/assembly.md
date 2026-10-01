@@ -30,8 +30,10 @@ internal PDF link through explicit source-to-output maps. Validation resolves
 all output links and checks their destinations and touch rectangles. Unsupported
 annotations and unmapped links fail instead of being removed or redirected.
 
-The tablet initializes the destination's native page IDs. Attachment renames
-source `.rm` entries to their mapped destination IDs while retaining every byte.
-It copies page tags, document tags, and viewport settings and preserves the
-actual target schema and page ordering. New ink already in the destination is
-never overwritten. Unknown native archive attachments stop the run.
+The tablet initializes the destination's native page IDs. Use the explicit
+source-to-output map to extract native files and build the remarkable import
+mapping. The import retains native bytes and the destination PDF and `.content`;
+it does not copy source page tags, document tags, or viewport settings. Verify
+those settings separately and stop if required settings cannot be transferred
+with supported remarkable commands. New destination ink must not be overwritten.
+Unknown native archive attachments stop the run.

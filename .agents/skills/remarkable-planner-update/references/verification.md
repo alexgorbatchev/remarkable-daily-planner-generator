@@ -11,15 +11,21 @@ Standups, holidays, and year-end navigation. Raw stroke hashes establish byte
 preservation; they do not establish visual alignment beneath a changed background.
 Do not embed rendered ink or preview overlays into the migration PDF.
 
-Attachment verifies every native stroke byte and its logical output page,
-including metadata-only files and future notes. It preserves the initialized
-native page identity, page tags, viewport settings, and background PDF. Fresh
-source and destination snapshots guard against concurrent cloud edits.
+Require every source native file, including metadata-only files and future notes,
+to appear once in the import mapping at its logical output page. Successful
+remarkable import verifies native bytes and committed page associations and keeps
+the destination PDF and `.content` bytes intact. Download imported native files
+again with `--no-cache` and compare their hashes to the source. Verify source tags
+and viewport settings separately; unchanged destination content does not prove
+that source settings were copied. Stop if required preservation cannot be checked.
 
-Require saved stage `complete` and `cloud-verification.json` with PASS, native-file
-count, PDF hash, and `original_files_unchanged: true`. Backups, stroke maps, and
-rmapi command logs remain in the run directory. Do not claim tablet synchronization
-or select/move/erase behavior was checked unless the user observed it.
+Require exit status zero and `state: verified` from remarkable import. Retain
+stdout, stderr, the mapping, source backups, and downloaded verification files.
+Check destination PDF hash, native page associations, and original preservation.
+The existing runner's `cloud-verification.json` and `complete` stage belong to
+its old cloud integration; do not fabricate them for a manual remarkable import.
+Do not claim tablet synchronization or select/move/erase behavior was checked
+unless the user observed it.
 
 Run `just migration-test` and the assembly helper tests when changing the runner.
 Work red/green and temporarily disable native copying or link mapping to require
