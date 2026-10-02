@@ -21,9 +21,8 @@ Pages are grouped to make day-to-day navigation easy: all Daily Planner pages fo
 ### 2. Daily Planner Pages
 Structured for engineering workflows:
 
-- Top Priority: For critical tasks that must be completed
-- Primary: Primary tasks for the day, typically work related 
-- Secondary: Other tasks, typically personal
+- Primary Objectives: A compact grid for the day's main objectives
+- Secondary Objectives: A larger grid for additional objectives
 
 Each page includes:
 - Date and weekday
@@ -194,7 +193,7 @@ The following settings are available in `src/config.typ`:
 
 // Shared writing defaults for every page type and Day section.
 #let WRITING = (
-  pattern: "lines",  // "lines", "grid", or "none"
+  pattern: "grid",   // "lines", "grid", or "none"
   spacing: 7mm,      // Line gap or square grid cell size
   style: "dotted",  // "solid", "dotted", or "dashed"
   color: lines_color,
@@ -204,18 +203,26 @@ The following settings are available in `src/config.typ`:
 // Daily planner sections (fully customizable)
 #let daily_planner_sections = (
   (
-    title_label: "Top Priority",
+    title_label: "Primary Objectives",
     title_font_size: 11pt,
-    lines_count: 3,
+    lines_count: 5,
     writing: WRITING,
     checkbox_show: true,
-    // Number of checkboxes per line (default: 1). When >1, checkboxes are
-    // evenly spaced across the row and left-aligned within each column.
-    columns: 2,
+    // Number of checkboxes per row (default: 1). Grid checkboxes are centered
+    // within cells; other patterns place them at the start of each column.
+    columns: 1,
     checkbox_size: 4mm,
     checkbox_color: 200
   ),
-  // ... additional sections
+  (
+    title_label: "Secondary Objectives",
+    title_font_size: 11pt,
+    lines_count: 18,
+    writing: WRITING,
+    checkbox_show: true,
+    checkbox_size: 4mm,
+    checkbox_color: 200
+  ),
 )
 
 // Daily notes configuration

@@ -136,7 +136,7 @@
 // Shared writing defaults. Override these fields per page or Day section.
 // pattern: "lines", "grid", or "none"; spacing: line gap or square cell size.
 #let WRITING = (
-  pattern: "lines",
+  pattern: "grid",
   spacing: 7mm,
   style: "dotted",
   color: lines_color,
@@ -153,7 +153,7 @@
 // - lines_count: (integer) Number of writing rows; controls the section height
 // - writing: (dictionary) Pattern, spacing, style, color, and thickness from WRITING
 // - checkbox_show: (boolean) Whether to show checkboxes at the start of each line (true/false)
-// - columns: (integer) Number of checkboxes per row when checkboxes are shown (default: 1)
+// - columns: (integer) Number of checkboxes per row (default: 1); centered in grid cells
 // - checkbox_size: (length) Size of checkbox squares when shown (e.g. 3mm, 4mm, 5mm)
 // - checkbox_color: (integer) Gray level for checkbox borders, 0=black, 255=white
 //
@@ -163,28 +163,19 @@
 // - Planning: writing: (..WRITING, spacing: 10mm) for more space
 #let daily_planner_sections = (
   (
-    title_label: "Top Priority",
+    title_label: "Primary Objectives",
     title_font_size: 11pt,
-    columns: 2,
-    lines_count: 3,
+    columns: 1,
+    lines_count: 5,
     writing: WRITING,
     checkbox_show: true,
     checkbox_size: 4mm,
     checkbox_color: 200
   ),
   (
-    title_label: "Primary",
+    title_label: "Secondary Objectives",
     title_font_size: 11pt,
-    lines_count: 13,
-    writing: WRITING,
-    checkbox_show: true,
-    checkbox_size: 4mm,
-    checkbox_color: 200
-  ),
-  (
-    title_label: "Secondary",
-    title_font_size: 11pt,
-    lines_count: 7,
+    lines_count: 18,
     writing: WRITING,
     checkbox_show: true,
     checkbox_size: 4mm,

@@ -1,6 +1,6 @@
 ---
 created_on: 2026-09-29 20:19
-last_modified: 2026-10-02 14:33
+last_modified: 2026-10-02 15:24
 status: current
 ---
 
@@ -23,7 +23,8 @@ The templates generate an annual calendar followed by chronological blocks of da
 - Gray date links preserve the current view by default; `quick_jump_same_view: false` selects Day destinations. `quick_jump_previous` controls the first previous-date link; `quick_jump_count` counts only upcoming dates, so zero permits previous-only navigation. Skip excluded weekends and omit destinations outside the planner year.
 - Standups default off. `STANDUP.enabled` sets the default; explicit `standup` input overrides it. Both generation and links must use `STANDUP_ENABLED`.
 - Standup pages have no separate body heading by default; `STANDUP.title_show` enables the configurable title. The writing area fills the remaining height in either mode.
-- Reuse `lib/writing-pattern.typ` for Notes, Standup, and Day sections; never duplicate grid or horizontal-line rendering in views. All use `writing` settings for pattern, spacing, style, color, and thickness. Standup shares Notes grid defaults; Day sections default to horizontal lines. Keep checkboxes and section titles in `lib/sections.typ`.
+- Reuse `lib/writing-pattern.typ` for Notes, Standup, and Day sections; never duplicate grid or horizontal-line rendering in views. All use `writing` settings for pattern, spacing, style, color, and thickness. Standup shares Notes grid defaults. Day defaults to two grids: Primary Objectives (5 rows), then Secondary Objectives (18 rows), each with one checkbox column. Center grid checkboxes within cells using the shared grid geometry. Keep the section list configurable, and keep checkboxes and section titles in `lib/sections.typ`.
+- Keep the final horizontal grid boundary visible. Pass configured Day row counts through grid geometry to preserve the last row despite layout rounding. Reuse the native horizontal-line renderer for both lines and grids, and position grid strokes directly to avoid tile rounding and clipping at the bottom boundary.
 - Preserve the default portrait toolbar clearance and gray navigator's vertical position. Both navigation rows have configurable horizontal alignment.
 - Daily headers default to `YYYY Mon DD Weekday Notes Standup`, with a bold date and short weekdays. Order, labels, date-component order and separator, month/weekday abbreviation, day padding, spacing, and inactive Standup visibility are configurable. Omit tokens from `navigation_order` to hide them.
 - Within the date, only `YYYY` may link to the annual calendar; `year_link` controls that link. Keep month/day text plain and the year link's hitbox clear of it.
