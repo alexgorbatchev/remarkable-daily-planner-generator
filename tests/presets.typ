@@ -26,5 +26,9 @@
 #let STANDUP_TITLED = (
   ..config.STANDUP,
   title_show: true, title: "Daily sync", title_font_size: 13pt,
-  title_gap: 2mm, lines_height: 6mm,
+  title_gap: 2mm, writing: (..config.WRITING, pattern: "lines", spacing: 6mm),
 )
+#let WRITING_GRID = (..config.daily_notes.writing, spacing: 6mm, color: 180, style: "solid", thickness: 0.4pt)
+#let DAY_GRID_SECTIONS = config.daily_planner_sections.map(section => (..section, writing: WRITING_GRID))
+#let NOTES_LINED = (writing: (..config.WRITING, spacing: 6mm, style: "dashed", color: 180, thickness: 0.4pt))
+#let STANDUP_GRID_TITLED = (..STANDUP_TITLED, writing: WRITING_GRID)

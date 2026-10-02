@@ -71,3 +71,4 @@ Navigation assertions passed.
 
 #include "date-navigator.typ"
 #include "standup.typ"
+#include "writing-pattern.typ"

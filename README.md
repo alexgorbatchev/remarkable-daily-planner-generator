@@ -39,7 +39,7 @@ Meetings notes, etc.
 
 Standup pages are disabled by default. Enable them with `--standup` or set `enabled: true` inside `STANDUP` in `src/config.typ`. Explicit `--standup=true` or `--standup=false` flags override the config value; omitting the flag preserves it. Both `just build` and `just build-all` accept these flags.
 
-When enabled, there is one standup page per included date, with horizontal writing lines filling the space below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. By default, gray date links show the previous included date first, followed by upcoming dates within the planner year, and preserve the current view. Disabled Standup tabs remain visible as plain text unless `show_disabled_standup` is false.
+When enabled, there is one standup page per included date, with a grid matching Daily Notes below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. By default, gray date links show the previous included date first, followed by upcoming dates within the planner year, and preserve the current view. Disabled Standup tabs remain visible as plain text unless `show_disabled_standup` is false.
 
 Customize line spacing, style, and color through `STANDUP` in `src/config.typ`. Set `title_show: true` to display a body heading, with configurable title text, font size, and gap. The line count adjusts to the remaining page height.
 
@@ -192,15 +192,22 @@ The following settings are available in `src/config.typ`:
 // Line styling
 #let lines_color = 100  // Gray level: 0=black, 255=white
 
+// Shared writing defaults for every page type and Day section.
+#let WRITING = (
+  pattern: "lines",  // "lines", "grid", or "none"
+  spacing: 7mm,      // Line gap or square grid cell size
+  style: "dotted",  // "solid", "dotted", or "dashed"
+  color: lines_color,
+  thickness: 0.6pt,
+)
+
 // Daily planner sections (fully customizable)
 #let daily_planner_sections = (
   (
     title_label: "Top Priority",
     title_font_size: 11pt,
     lines_count: 3,
-    lines_height: 7mm,
-    lines_style: "dotted",
-    lines_color: lines_color,
+    writing: WRITING,
     checkbox_show: true,
     // Number of checkboxes per line (default: 1). When >1, checkboxes are
     // evenly spaced across the row and left-aligned within each column.
@@ -213,26 +220,23 @@ The following settings are available in `src/config.typ`:
 
 // Daily notes configuration
 #let daily_notes = (
-  lines_show: true,
-  lines_size: 5mm,
-  lines_style: "grid",
-  lines_color: lines_color
+  writing: (..WRITING, pattern: "grid", spacing: 5mm, thickness: 1pt),
 )
 
-// Optional standup heading and writing lines.
+// Optional standup heading and the same grid defaults as Notes.
 #let STANDUP = (
   enabled: false,
   title_show: false,
   title: "Standup",
   title_font_size: 11pt,
   title_gap: 2mm,
-  lines_height: 7mm,
-  lines_style: "dotted",
-  lines_color: lines_color,
+  writing: daily_notes.writing,
 )
 ```
 
 Both navigation rows use `left`, `center`, or `right` alignment. `quick_jump_show: false` hides the entire gray row; `quick_jump_previous: false` hides only the back link. Tab labels and active styling apply to every daily view. Larger font sizes, labels, or padding may require increasing `height`, `quick_jump_height`, `navigation_gap`, or `day_label_gap` to preserve clearance.
+
+All writing areas use the same `writing` settings. Set `pattern` to `"grid"`, `"lines"`, or `"none"`; `spacing` controls square cell size or horizontal line spacing. Set `style`, `color`, and `thickness` to change the strokes. Each Day section can override the defaults with, for example, `writing: (..WRITING, pattern: "grid", spacing: 5mm)`. Standup inherits Notes defaults; use `writing: (..WRITING, pattern: "lines")` inside `STANDUP` for horizontal lines, or `writing: (..daily_notes.writing, spacing: 6mm)` for an independent grid size. `lines_count` controls each Day section's height in rows; checkbox settings remain per section.
 
 ## Building
 

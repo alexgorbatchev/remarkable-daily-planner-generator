@@ -133,35 +133,41 @@
 
 #let lines_color = 100
 
+// Shared writing defaults. Override these fields per page or Day section.
+// pattern: "lines", "grid", or "none"; spacing: line gap or square cell size.
+#let WRITING = (
+  pattern: "lines",
+  spacing: 7mm,
+  style: "dotted",
+  color: lines_color,
+  thickness: 0.6pt,
+)
+
 // Daily planner sections configuration
-// Each section is a dictionary that defines a titled area with configurable lines and styling.
+// Each section defines a titled writing area with an independently configurable pattern.
 // Sections are rendered in order from top to bottom on each daily planner page.
 //
 // Section properties:
 // - title_label: (string) The section heading text displayed above the lines
 // - title_font_size: (length) Font size for the section title (e.g. 11pt, 12pt, 14pt)
-// - lines_count: (integer) Number of lines to render in this section (1-50)
-// - lines_height: (length) Vertical spacing between lines (e.g. 5mm, 7mm, 10mm)
-// - lines_style: (string) Line appearance - "solid", "dotted", "dashed", or "none"
-// - lines_color: (integer) Gray level for lines, 0=black, 255=white (e.g. 200 for light gray)
+// - lines_count: (integer) Number of writing rows; controls the section height
+// - writing: (dictionary) Pattern, spacing, style, color, and thickness from WRITING
 // - checkbox_show: (boolean) Whether to show checkboxes at the start of each line (true/false)
 // - columns: (integer) Number of checkboxes per row when checkboxes are shown (default: 1)
 // - checkbox_size: (length) Size of checkbox squares when shown (e.g. 3mm, 4mm, 5mm)
 // - checkbox_color: (integer) Gray level for checkbox borders, 0=black, 255=white
 //
 // Example section types:
-// - Task lists: checkbox_show: true, lines_style: "dotted"
-// - Note areas: checkbox_show: false, lines_style: "solid" 
-// - Planning: checkbox_show: true, lines_height: 10mm for more space
+// - Task lists: checkbox_show: true, writing: WRITING
+// - Note areas: checkbox_show: false, writing: (..WRITING, pattern: "grid")
+// - Planning: writing: (..WRITING, spacing: 10mm) for more space
 #let daily_planner_sections = (
   (
     title_label: "Top Priority",
     title_font_size: 11pt,
     columns: 2,
     lines_count: 3,
-    lines_height: 7mm,
-    lines_style: "dotted",
-    lines_color: lines_color,
+    writing: WRITING,
     checkbox_show: true,
     checkbox_size: 4mm,
     checkbox_color: 200
@@ -170,9 +176,7 @@
     title_label: "Primary",
     title_font_size: 11pt,
     lines_count: 13,
-    lines_height: 7mm,
-    lines_style: "dotted",
-    lines_color: lines_color,
+    writing: WRITING,
     checkbox_show: true,
     checkbox_size: 4mm,
     checkbox_color: 200
@@ -181,9 +185,7 @@
     title_label: "Secondary",
     title_font_size: 11pt,
     lines_count: 7,
-    lines_height: 7mm,
-    lines_style: "dotted",
-    lines_color: lines_color,
+    writing: WRITING,
     checkbox_show: true,
     checkbox_size: 4mm,
     checkbox_color: 200
@@ -192,22 +194,17 @@
 
 // Daily notes configuration
 #let daily_notes = (
-  lines_show: true,
-  lines_size: 5mm,
-  lines_style: "grid",
-  lines_color: lines_color
+  writing: (..WRITING, pattern: "grid", spacing: 5mm, thickness: 1pt),
 )
 
-// Standup writing lines fill the available space below the daily navigation.
+// Standup shares the Notes grid defaults; override writing independently here.
 #let STANDUP = (
   enabled: false,
   title_show: false,
   title: "Standup",
   title_font_size: 11pt,
   title_gap: 2mm,
-  lines_height: 7mm,
-  lines_style: "dotted",
-  lines_color: lines_color,
+  writing: daily_notes.writing,
 )
 
 // Explicit CLI input overrides the configured default.

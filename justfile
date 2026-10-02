@@ -49,6 +49,7 @@ test:
     typst compile --root . --input year=2026 --input standup=true --input preset=blue tests/render.typ .tmp/planner-config-blue.pdf
     typst compile --root . --input year=2026 --input standup=true --input preset=underline tests/render.typ .tmp/planner-config-underline.pdf
     typst compile --root . --input year=2026 --input standup=true --input preset=plain tests/render.typ .tmp/planner-config-plain.pdf
+    typst compile --root . --input year=2026 --input standup=true --input preset=writing tests/render.typ .tmp/planner-config-writing.pdf
     just migration-test
 
 # Check shell syntax and compile both planner configurations.
