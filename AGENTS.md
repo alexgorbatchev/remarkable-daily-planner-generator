@@ -1,6 +1,6 @@
 ---
 created_on: 2026-09-29 20:19
-last_modified: 2026-09-30 20:51
+last_modified: 2026-10-01 21:54
 status: current
 ---
 
@@ -11,7 +11,7 @@ This repository generates linked PDF planners with Typst and Bash.
 ## Commands
 
 - List tasks: `just`
-- Local native planner migration preparation: `just migrate --help`; setup: `just migration-setup`; checks: `just migration-test`. The runner's cloud commands remain blocked pending the remarkable CLI integration described in [scripts/AGENTS.md](scripts/AGENTS.md).
+- Native planner migrations: `just migrate --help`; setup: `just migration-setup`; checks: `just migration-test`. Cloud preparation, publication, and resumption require remarkable CLI 1.2+; see [scripts/AGENTS.md](scripts/AGENTS.md).
 - Build and open on macOS: `just build 2026 --open`
 - Include standups: `just build 2026 --standup --open`
 - Rebuild on save: `just build 2026 --watch`
@@ -28,6 +28,7 @@ This repository generates linked PDF planners with Typst and Bash.
 - Automation guidance: [scripts/AGENTS.md](scripts/AGENTS.md).
 - Use Context7 for documentation when available; otherwise consult official online docs.
 - Read applicable skills fully before modifying code. Ground changes and completion claims in inspected source and execution evidence.
+- Before implementing a feature, inspect existing dependencies and maintained libraries. Prefer a suitable library or native standard-library primitive; write custom functionality only when existing solutions cannot meet the requirements.
 
 ## Conventions and validation
 

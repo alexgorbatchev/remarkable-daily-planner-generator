@@ -1,4 +1,4 @@
-"""Persist migration stages; no cloud writes occur during preparation."""
+"""Persist migration stages; all cloud access uses the remarkable CLI."""
 
 import fcntl
 import json
@@ -9,13 +9,13 @@ from uuid import UUID, uuid4
 
 from .background import build_background, inventory, plan_pages
 from .cloud import Cloud
-from .native import NativeDocument, attach, digest, verify_attachment, write_json
+from .native import NativeDocument, prepare_transfer, digest, verify_attachment, verify_preservation, verify_strokes, write_json
 
 
 def load(work):
     state = json.loads((work / "migration.json").read_text())
-    if state["version"] != 1:
-        raise ValueError("Unsupported migration manifest version")
+    if state["version"] != 2:
+        raise ValueError("Unsupported migration manifest version; prepare a fresh remarkable run")
     return state
 
 
@@ -51,7 +51,7 @@ def prepare(root, work, source, source_archive, cutoff, title, country, standup,
     work.mkdir(parents=True, exist_ok=False)
     with locked(work):
         if source_archive:
-            backup = work / "source.rmdoc"
+            backup = work / "source.zip"
             shutil.copyfile(source_archive, backup)
             document = NativeDocument(backup)
         else:
@@ -66,7 +66,7 @@ def prepare(root, work, source, source_archive, cutoff, title, country, standup,
         supplied = json.loads(source_map.read_text()) if source_map else None
         pages = inventory(document, cutoff.year, supplied)
         plan = plan_pages(pages, cutoff.isoformat(), standup)
-        state = {"version": 1, "stage": "preparing", "source_id": document.id, "source_archive": str(document.path.relative_to(work)), "source_hashes": document.hashes(), "title": title, "cutoff": cutoff.isoformat(), "country": country, "rmapi": binary, "plan": plan}
+        state = {"version": 2, "stage": "preparing", "source_id": document.id, "source_archive": str(document.path.relative_to(work)), "source_hashes": document.hashes(), "title": title, "cutoff": cutoff.isoformat(), "country": country, "remarkable": binary, "plan": plan}
         save(work, state)
         state["background"] = build_background(root, work, document, pages, plan, cutoff.year, country)
         state["stage"] = "prepared"
@@ -96,57 +96,69 @@ def check_destination(target, state):
         raise ValueError("Destination PDF differs from the prepared background")
 
 
+def upload_identity(evidence, state):
+    value = json.loads(evidence.read_text())
+    if value["version"] != 1 or value["title"] != state["title"] or value["folder"] != "" or value["pages"] != state["background"]["page_count"]:
+        raise ValueError("Upload evidence differs from the saved migration")
+    identity = value["result"]["id"]
+    UUID(identity)
+    files = value["files"]
+    if len(files) != 4 or {f["name"] for f in files} != {f"{identity}.{ext}" for ext in ("pdf", "metadata", "content", "pagedata")}:
+        raise ValueError("Upload evidence attachment identity differs")
+    pdf = next(f for f in files if f["name"] == f"{identity}.pdf")
+    if pdf["sha256"] != state["background"]["pdf_sha256"]:
+        raise ValueError("Upload evidence PDF differs from the reviewed background")
+    return identity
+
+
 def publish(work):
     with locked(work):
         state = load(work)
         if state["stage"] not in ("prepared", "publishing", "awaiting_page_ids"):
             raise ValueError(f"Cannot publish migration at stage {state['stage']}")
-        checked_background(work, state)
-        cloud = Cloud(state["rmapi"], work)
+        background = checked_background(work, state)
+        cloud = Cloud(state["remarkable"], work)
         fresh_source(work, state, cloud)
-        found = cloud.stat(state["title"])
-        if found and state["stage"] == "prepared":
-            raise ValueError("That destination title already exists; choose an unused title")
-        if found and state.get("destination_id") and found["ID"] != state["destination_id"]:
-            raise ValueError("Destination ID changed; do not replace another document")
-        if not found:
-            if state["stage"] == "awaiting_page_ids":
-                raise ValueError("Previously uploaded destination is absent; inspect cloud state before retrying")
-            upload_dir = work / "upload-background"
-            upload_dir.mkdir(exist_ok=True)
-            path = upload_dir / (state["title"] + ".pdf")
-            shutil.copyfile(work / "background.pdf", path)
+        if state["stage"] == "awaiting_page_ids":
+            target = cloud.download(state["destination_id"])
+            check_destination(target, state)
+            return state
+        evidence = work / "upload.json"
+        if state["stage"] == "prepared":
+            if cloud.stat(state["title"]) is not None:
+                raise ValueError("That destination title already exists; choose an unused title")
+            if evidence.exists():
+                raise ValueError("Unexpected upload evidence; inspect it before publishing")
             state["stage"] = "publishing"
             save(work, state)
-            cloud.put(path)
-            found = cloud.stat(state["title"])
-            if found is None:
-                raise ValueError("Upload not visible; resume publish to inspect it before retrying")
-        target = cloud.download(found["ID"])
+        if not evidence.exists():
+            # The CLI writes evidence before staging any cloud data. Absence
+            # means creation has not started; every other retry uses saved ID.
+            cloud.upload(background, state["title"], evidence)
+        identity = upload_identity(evidence, state)
+        if state.get("destination_id") and state["destination_id"] != identity:
+            raise ValueError("Saved destination ID differs from upload evidence")
+        try:
+            cloud.upload_check(evidence)
+        except RuntimeError:
+            # Tablet initialization can invalidate the creation document hash.
+            # Inspect the saved UUID and exact background; never create a copy.
+            state["upload_recovery"] = "Inspecting saved UUID after upload-check failure"
+        target = cloud.download(identity)
         check_destination(target, state)
         if target.strokes:
             raise ValueError("Destination already contains new ink; do not replace it")
-        state.update(stage="awaiting_page_ids", destination_id=target.id)
+        state.update(stage="awaiting_page_ids", destination_id=identity)
         save(work, state)
         return state
 
 
 def verify_remote(work, state, cloud, source, target):
     check_destination(target, state)
-    report = verify_attachment(source, target, state["plan"])
-    prepared = NativeDocument(work / state["prepared_archive"])
-    if target.pages != prepared.pages:
-        raise ValueError("Uploaded native page identity or order differs")
-    for name, data in prepared.files.items():
-        if not name.endswith((".metadata", ".content")) and target.files.get(name) != data:
-            raise ValueError(f"Uploaded native document differs: {name}")
-    for key in ("tags", "pageTags"):
-        if any(tag not in target.content.get(key, []) for tag in prepared.content.get(key, [])):
-            raise ValueError("Uploaded document lost destination tags")
-    original = cloud.download(state["source_id"])
-    if original.hashes() != state["source_hashes"]:
-        raise ValueError("Original document changed during the transfer; backups are retained")
-    report.update(cloud_verified=True, original_files_unchanged=True, downloaded_archive=str(target.path.relative_to(work)))
+    baseline = NativeDocument(work / state["destination_archive"])
+    report = verify_attachment(source, target, state["plan"], baseline)
+    original = fresh_source(work, state, cloud)
+    report.update(cloud_verified=True, original_files_unchanged=original.hashes() == state["source_hashes"], downloaded_archive=str(target.path.relative_to(work)))
     write_json(work / "cloud-verification.json", report)
     state.update(stage="complete", verification=report)
     save(work, state)
@@ -156,56 +168,54 @@ def verify_remote(work, state, cloud, source, target):
 def resume(work):
     with locked(work):
         state = load(work)
-        if state["stage"] not in ("awaiting_page_ids", "attaching", "complete"):
+        if state["stage"] not in ("awaiting_page_ids", "importing", "settings", "complete"):
             raise ValueError("Publish the prepared background before resuming the native transfer")
         checked_background(work, state)
-        cloud = Cloud(state["rmapi"], work)
+        cloud = Cloud(state["remarkable"], work)
         source = fresh_source(work, state, cloud)
-        found = cloud.stat(state["title"])
-        if found is None:
-            if state["stage"] != "attaching":
-                raise ValueError("Destination is absent; inspect cloud state before continuing")
-            prepared_path = work / state["prepared_archive"]
-            prepared = NativeDocument(prepared_path)
-            check_destination(prepared, state)
-            if prepared.id != state["destination_id"]:
-                raise ValueError("Prepared archive UUID differs from the saved destination")
-            verify_attachment(source, prepared, state["plan"])
-            # Recover a force upload interrupted after deletion. The title is
-            # absent, so normal put restores the retained staging archive.
-            cloud.put(prepared_path)
-        elif found["ID"] != state["destination_id"]:
-            raise ValueError("Destination title now belongs to a different document")
         target = cloud.download(state["destination_id"])
         check_destination(target, state)
-        if state["stage"] in ("attaching", "complete"):
-            try:
-                verify_attachment(source, target, state["plan"])
-            except ValueError:
-                if target.strokes or state["stage"] == "complete":
-                    raise ValueError("Destination has unexpected ink; inspect the retained backups before another upload") from None
-            else:
-                return verify_remote(work, state, cloud, source, target)
+        if state["stage"] == "complete":
+            return verify_remote(work, state, cloud, source, target)
         if len(target.pages) != state["background"]["page_count"]:
+            if state["stage"] != "awaiting_page_ids":
+                raise ValueError("Destination native page structure changed during attachment")
             return {**state, "message": "Open the new document on the tablet, return to My files, sync, then resume this run."}
-        if target.strokes:
-            raise ValueError("The destination contains new ink; do not overwrite it")
-        directory = work / f"native-{uuid4().hex}"
-        directory.mkdir()
-        prepared_path = directory / (state["title"] + ".rmdoc")
-        records = attach(source, target, state["plan"], prepared_path)
-        write_json(directory / "stroke-map.json", records)
-        state.update(stage="attaching", prepared_archive=str(prepared_path.relative_to(work)))
-        save(work, state)
-        # rmapi --force recreates only the distinct staging document. Its archive
-        # retains the staging UUID and the tablet-generated native page IDs.
-        found = cloud.stat(state["title"])
-        if not found or found["ID"] != state["destination_id"]:
-            raise ValueError("Destination identity changed immediately before upload")
-        latest = cloud.download(state["destination_id"])
-        if latest.hashes() != target.hashes():
-            raise ValueError("Destination changed while assembling; resume with a fresh snapshot")
-        fresh_source(work, state, cloud)
-        cloud.put(prepared_path, replace=True)
-        uploaded = cloud.download(state["destination_id"])
-        return verify_remote(work, state, cloud, source, uploaded)
+        if state["stage"] == "awaiting_page_ids":
+            directory = work / f"native-{uuid4().hex}"
+            directory.mkdir()
+            prepare_transfer(source, target, state["plan"], directory)
+            state.update(stage="importing", destination_archive=str(target.path.relative_to(work)), transfer_dir=str(directory.relative_to(work)))
+            save(work, state)
+        baseline = NativeDocument(work / state["destination_archive"])
+        directory = work / state["transfer_dir"]
+        if target.pages != baseline.pages:
+            raise ValueError("Destination native page identity or order changed")
+        if state["stage"] == "importing":
+            if target.strokes:
+                # A committed import may have returned an error or lost stdout.
+                # Only exact complete bytes allow recovery; partial ink stops.
+                verify_strokes(source, target, state["plan"])
+            elif source.strokes:
+                if target.hashes() != baseline.hashes():
+                    raise ValueError("Destination changed before native import")
+                fresh_source(work, state, cloud)
+                cloud.import_strokes(target.id, directory / "import-map.json")
+                target = cloud.download(target.id)
+                verify_strokes(source, target, state["plan"])
+            state["stage"] = "settings"
+            save(work, state)
+        verify_preservation(source, target, state["plan"], baseline)
+        try:
+            verify_attachment(source, target, state["plan"], baseline)
+        except ValueError:
+            # Before settings transfer, only the stroke import's file changes
+            # and lastModified update are allowed. A prior settings commit is
+            # accepted above only if the complete expected result verifies.
+            if target.files[f"{target.id}.content"] != baseline.files[f"{target.id}.content"]:
+                raise ValueError("Destination settings changed unexpectedly; inspect retained evidence") from None
+            verify_strokes(source, target, state["plan"])
+            fresh_source(work, state, cloud)
+            cloud.transfer_settings(source.id, target.id, directory / "settings-map.json")
+            target = cloud.download(target.id)
+        return verify_remote(work, state, cloud, source, target)

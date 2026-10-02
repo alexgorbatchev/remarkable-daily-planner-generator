@@ -32,8 +32,9 @@ annotations and unmapped links fail instead of being removed or redirected.
 
 The tablet initializes the destination's native page IDs. Use the explicit
 source-to-output map to extract native files and build the remarkable import
-mapping. The import retains native bytes and the destination PDF and `.content`;
-it does not copy source page tags, document tags, or viewport settings. Verify
-those settings separately and stop if required settings cannot be transferred
-with supported remarkable commands. New destination ink must not be overwritten.
+mapping. Native import retains the destination PDF and `.content`; the runner then
+uses remarkable settings transfer to copy document tags, mapped page tags, and
+the eight documented viewport fields. It verifies their values and field presence,
+native page identities, unrelated content/metadata, and untouched attachments.
+New destination ink must not be overwritten.
 Unknown native archive attachments stop the run.

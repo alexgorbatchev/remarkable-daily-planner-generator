@@ -1,10 +1,11 @@
 """Preserve native page identity and copy handwriting without decoding it."""
 
-import copy
 import hashlib
 import json
 import zipfile
 from pathlib import Path
+
+VIEWPORT_FIELDS = ("zoomMode", "viewBackgroundFilter", "customZoomCenterX", "customZoomCenterY", "customZoomOrientation", "customZoomPageHeight", "customZoomPageWidth", "customZoomScale")
 
 
 def digest(data):
@@ -26,11 +27,26 @@ class NativeDocument:
                 raise ValueError("Invalid or duplicate archive entries")
             if any(Path(n).is_absolute() or ".." in Path(n).parts for n in names):
                 raise ValueError("Unsafe archive path")
-            self.files = {n: archive.read(n) for n in names if not n.endswith("/")}
+            entries = {n: archive.read(n) for n in names if not n.endswith("/")}
+        if not {"evidence/snapshot.json", "evidence/document.docSchema"} <= entries.keys():
+            raise ValueError("Expected a complete remarkable doc archive ZIP with snapshot evidence")
+        self.snapshot = json.loads(entries["evidence/snapshot.json"])
+        if self.snapshot["format_version"] != 1 or digest(entries["evidence/document.docSchema"]) != self.snapshot["manifest_sha256"]:
+            raise ValueError("Invalid remarkable archive evidence")
+        self.files = {name.removeprefix("files/"): data for name, data in entries.items() if name.startswith("files/")}
+        records = self.snapshot["files"]
+        if len(records) != len(self.files) or {r["name"] for r in records} != set(self.files) or set(entries) != {"files/" + n for n in self.files} | {"evidence/snapshot.json", "evidence/document.docSchema"}:
+            raise ValueError("Archive files differ from snapshot evidence")
+        for record in records:
+            data = self.files[record["name"]]
+            if len(data) != record["size"] or digest(data) != record["sha256"] or digest(data) != record["hash"]:
+                raise ValueError(f"Native archive hash differs: {record['name']}")
         contents = [n for n in self.files if n.endswith(".content") and "/" not in n]
         if len(contents) != 1:
             raise ValueError("Expected one native document in the archive")
         self.id = contents[0].removesuffix(".content")
+        if self.id != self.snapshot["document_id"]:
+            raise ValueError("Native archive identity differs from evidence")
         self.content = json.loads(self.files[contents[0]])
         self.metadata = json.loads(self.files[f"{self.id}.metadata"])
         self.pdf = self.files[f"{self.id}.pdf"]
@@ -58,7 +74,7 @@ class NativeDocument:
         elif version == 1:
             ids = self.content.get("pages", [])
             redirects = self.content.get("redirectionPageMap", [])
-            if ids is None and redirects is None and self.content.get("pageCount") == 0:
+            if ids is None and not redirects:
                 return {}
             if not isinstance(ids, list) or not isinstance(redirects, list):
                 raise ValueError("Native PDF page IDs have not been initialized")
@@ -96,51 +112,69 @@ def page_mapping(source, target, plan):
     return result
 
 
-def attach(source, target, plan, output):
+def prepare_transfer(source, target, plan, directory):
     if source.id == target.id:
         raise ValueError("The destination must be a separate document")
     if target.strokes:
         raise ValueError("The destination contains new ink; do not overwrite it")
     mapping = page_mapping(source, target, plan)
-    files = dict(target.files)
-    content = copy.deepcopy(target.content)
-    for key, value in source.content.items():
-        if key == "zoomMode" or key == "viewBackgroundFilter" or key.startswith("customZoom"):
-            content[key] = value
-    id_mapping = {source.pages[i]: target.pages[o] for i, o in mapping.items()}
-    content.setdefault("pageTags", [])
-    content.setdefault("tags", [])
-    for tag in source.content.get("pageTags", []):
-        remapped = {**tag, "pageId": id_mapping[tag["pageId"]]}
-        if remapped not in content["pageTags"]:
-            content["pageTags"].append(remapped)
-    for tag in source.content.get("tags", []):
-        if tag not in content["tags"]:
-            content["tags"].append(copy.deepcopy(tag))
-    files[f"{target.id}.content"] = json.dumps(content, indent=2).encode()
     records = []
+    imports = []
     for index, data in source.strokes.items():
         output_index = mapping[index]
-        destination = f"{target.id}/{target.pages[output_index]}.rm"
-        files[destination] = data
+        name = f"page-{index:04d}.rm"
+        with (directory / name).open("xb") as file:
+            file.write(data)
+        imports.append({"source": name, "page": output_index})
         records.append({"source_index": index, "output_index": output_index, "source_page_id": source.pages[index], "destination_page_id": target.pages[output_index], "bytes": len(data), "sha256": digest(data)})
-    with zipfile.ZipFile(output, "x", compression=zipfile.ZIP_DEFLATED) as archive:
-        for name, data in files.items():
-            archive.writestr(name, data)
-    verify_attachment(source, NativeDocument(output), plan)
+    write_json(directory / "import-map.json", imports)
+    write_json(directory / "settings-map.json", [{"source_page": i, "destination_page": o} for i, o in mapping.items()])
+    write_json(directory / "stroke-map.json", records)
     return records
 
 
-def verify_attachment(source, target, plan):
+def verify_strokes(source, target, plan):
     mapping = page_mapping(source, target, plan)
     expected = {mapping[index]: data for index, data in source.strokes.items()}
     if expected != target.strokes:
         raise ValueError("Native stroke bytes or page associations differ")
+    return mapping
+
+
+def verify_preservation(source, target, plan, baseline):
+    mapping = page_mapping(source, target, plan)
+    if target.pages != baseline.pages:
+        raise ValueError("Destination native page identity or order changed")
+    copied_names = {f"{target.id}/{target.pages[mapping[i]]}.rm" for i in source.strokes}
+    if set(target.files) != set(baseline.files) | copied_names:
+        raise ValueError("Destination native attachment set changed unexpectedly")
+    for name, data in baseline.files.items():
+        if not name.endswith((".metadata", ".content")) and name not in copied_names and target.files[name] != data:
+            raise ValueError(f"Destination attachment changed: {name}")
+    ignored = set(VIEWPORT_FIELDS) | {"tags", "pageTags"}
+    if {k: v for k, v in target.content.items() if k not in ignored} != {k: v for k, v in baseline.content.items() if k not in ignored}:
+        raise ValueError("Unrelated destination native content changed")
+    if {k: v for k, v in target.metadata.items() if k != "lastModified"} != {k: v for k, v in baseline.metadata.items() if k != "lastModified"}:
+        raise ValueError("Unrelated destination metadata changed")
+
+
+def verify_attachment(source, target, plan, baseline=None):
+    mapping = verify_strokes(source, target, plan)
     id_mapping = {source.pages[i]: target.pages[o] for i, o in mapping.items()}
     tags = [{**tag, "pageId": id_mapping[tag["pageId"]]} for tag in source.content.get("pageTags", [])]
-    if any(tag not in target.content.get("pageTags", []) for tag in tags) or any(tag not in target.content.get("tags", []) for tag in source.content.get("tags", [])):
+    if baseline is not None:
+        mapped_ids = set(id_mapping.values())
+        tags += [tag for tag in baseline.content.get("pageTags", []) if tag["pageId"] not in mapped_ids]
+    def by_page(rows):
+        groups = {}
+        for tag in rows:
+            groups.setdefault(tag["pageId"], []).append(tag)
+        return groups
+    if by_page(tags) != by_page(target.content.get("pageTags", [])) or source.content.get("tags", []) != target.content.get("tags", []):
         raise ValueError("Native tags differ")
-    for key, value in source.content.items():
-        if (key in ("zoomMode", "viewBackgroundFilter") or key.startswith("customZoom")) and target.content.get(key) != value:
+    for key in VIEWPORT_FIELDS:
+        if (key in source.content) != (key in target.content) or target.content.get(key) != source.content.get(key):
             raise ValueError(f"Native viewport differs: {key}")
-    return {"status": "PASS", "native_files": len(expected), "native_bytes": sum(map(len, expected.values())), "destination_id": target.id, "pdf_sha256": digest(target.pdf)}
+    if baseline is not None:
+        verify_preservation(source, target, plan, baseline)
+    return {"status": "PASS", "native_files": len(source.strokes), "native_bytes": sum(map(len, source.strokes.values())), "destination_id": target.id, "pdf_sha256": digest(target.pdf)}

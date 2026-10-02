@@ -79,13 +79,13 @@ def migration():
 
 
 @migration.command()
-@click.option("--source", help="Source document path or UUID in rmapi.")
-@click.option("--source-archive", type=click.Path(exists=True, dir_okay=False, path_type=Path), help="Prepare locally from an existing native backup.")
+@click.option("--source", help="Source document UUID, exact title, or path in remarkable.")
+@click.option("--source-archive", type=click.Path(exists=True, dir_okay=False, path_type=Path), help="Prepare locally from a verified remarkable archive ZIP.")
 @click.option("--from", "cutoff", type=click.DateTime(formats=["%Y-%m-%d"]), required=True, help="First date to update, inclusive (YYYY-MM-DD).")
 @click.option("--title", required=True, help="Unused title for the separate updated document.")
 @click.option("--country", type=click.Choice(["usa", "ca-on", "none"]), default="usa", show_default=True)
 @click.option("--standup/--no-standup", default=True, show_default=True, help="Add missing future Standup pages; existing pages survive either setting.")
-@click.option("--rmapi", "binary", default=lambda: os.environ.get("RMAPI_BIN", "rmapi"), help="rmapi executable; also accepts RMAPI_BIN.")
+@click.option("--remarkable", "binary", default=lambda: os.environ.get("REMARKABLE_BIN", "remarkable"), help="remarkable 1.2+ executable; also accepts REMARKABLE_BIN.")
 @click.option("--work-dir", type=click.Path(path_type=Path), help="New run directory inside this repository's .tmp.")
 @click.option("--source-map", type=click.Path(exists=True, dir_okay=False, path_type=Path), help="Hash-verified page-map.json for custom headers.")
 @guarded
