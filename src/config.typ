@@ -137,7 +137,7 @@
 // pattern: "lines", "grid", or "none"; spacing: line gap or square cell size.
 #let WRITING = (
   pattern: "grid",
-  spacing: 7mm,
+  spacing: 5mm,
   style: "dotted",
   color: lines_color,
   thickness: 0.6pt,
@@ -169,23 +169,23 @@
     lines_count: 5,
     writing: WRITING,
     checkbox_show: true,
-    checkbox_size: 4mm,
+    checkbox_size: 4mm - 1.5pt,
     checkbox_color: 200
   ),
   (
     title_label: "Secondary Objectives",
     title_font_size: 11pt,
-    lines_count: 18,
+    lines_count: 27,
     writing: WRITING,
     checkbox_show: true,
-    checkbox_size: 4mm,
+    checkbox_size: 4mm - 1.5pt,
     checkbox_color: 200
   )
 )
 
 // Daily notes configuration
 #let daily_notes = (
-  writing: (..WRITING, pattern: "grid", spacing: 5mm, thickness: 1pt),
+  writing: (..WRITING, pattern: "grid", thickness: 1pt),
 )
 
 // Standup shares the Notes grid defaults; override writing independently here.

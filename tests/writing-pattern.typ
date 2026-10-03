@@ -7,6 +7,41 @@
 
 // Inspect generated shapes and positions, rather than configuration constants.
 #let SIZE = (width: 32mm, height: 22mm)
+
+// Smaller default checkboxes retain the same cell centers in both axes.
+#for section in config.daily_planner_sections {
+  let original = (..section, checkbox_size: 4mm)
+  let row = checkbox-row(section, SIZE.width)
+  let original-row = checkbox-row(original, SIZE.width)
+  let shape = descendants(row, rect).first()
+  assert(shape.width < 4mm and shape.height < 4mm, message: "Default checkboxes must be smaller than the previous 4mm squares")
+  assert.eq(shape.width, 4mm - 1.5pt)
+  assert.eq(shape.height, 4mm - 1.5pt)
+  let position = descendants(row, place).first()
+  let original-position = descendants(original-row, place).first()
+  assert(calc.abs((position.dx.length + shape.width.length / 2) - (original-position.dx.length + 2mm)) < 0.0001pt)
+  let body = section-writing-body(SIZE, section)
+  let original-body = section-writing-body(SIZE, original)
+  let rows = descendants(body, place).filter(it => it.body.func() == box)
+  let original-rows = descendants(original-body, place).filter(it => it.body.func() == box)
+  assert.eq(rows.len(), section.lines_count)
+  for (current, previous) in rows.zip(original-rows) {
+    assert(calc.abs((current.dy.length + shape.height.length / 2) - (previous.dy.length + 2mm)) < 0.0001pt)
+  }
+}
+
+// Default Day, Notes, and Standup grids share their rendered cell dimensions.
+#let NOTES_GRID = writing-pattern(SIZE, config.daily_notes.writing)
+#let STANDUP_GRID = writing-pattern(SIZE, config.STANDUP.writing)
+#let GRID_OFFSETS(background) = descendants(background, place).filter(it => it.body.at("length", default: none) != none).map(it => it.dy)
+#let NOTES_CELL_SIZE = GRID_OFFSETS(NOTES_GRID).at(1) - GRID_OFFSETS(NOTES_GRID).first()
+#assert.eq(GRID_OFFSETS(STANDUP_GRID).at(1) - GRID_OFFSETS(STANDUP_GRID).first(), NOTES_CELL_SIZE)
+#for section in config.daily_planner_sections {
+  let background = section-writing-body(SIZE, section)
+  let offsets = GRID_OFFSETS(background)
+  assert.eq(offsets.at(1) - offsets.first(), NOTES_CELL_SIZE, message: "Day cells must match the Notes and Standup grid size")
+}
+
 #let CENTERED_ROW_SETTINGS = (..config.daily_planner_sections.first(), columns: 1, checkbox_size: 4mm, writing: (..config.WRITING, pattern: "grid", spacing: 6mm))
 #let CENTERED_ROW = checkbox-row(CENTERED_ROW_SETTINGS, 32mm)
 #assert.eq(descendants(CENTERED_ROW, place).len(), 1)
@@ -89,7 +124,7 @@
 
 #for pattern in ("lines", "grid", "none") {
   for checkboxes in (false, true) {
-    let settings = (..config.daily_planner_sections.first(), lines_count: 3, columns: 2, checkbox_show: checkboxes, writing: (..config.WRITING, pattern: pattern, spacing: 8mm))
+    let settings = (..config.daily_planner_sections.first(), lines_count: 3, columns: 2, checkbox_show: checkboxes, checkbox_size: 4mm, writing: (..config.WRITING, pattern: pattern, spacing: 8mm))
     let section = writing-section(settings)
     let areas = descendants(section, block).filter(it => it.at("height", default: auto) != auto)
     assert.eq(areas.len(), 1)

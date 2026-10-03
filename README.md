@@ -21,18 +21,24 @@ Pages are grouped to make day-to-day navigation easy: all Daily Planner pages fo
 ### 2. Daily Planner Pages
 Structured for engineering workflows:
 
-- Primary Objectives: A compact grid for the day's main objectives
-- Secondary Objectives: A larger grid for additional objectives
+- Primary Objectives: Five grid rows for the day's main objectives
+- Secondary Objectives: Twenty-seven grid rows for additional objectives
 
-Each page includes:
-- Date and weekday
-- Navigation links to the same date's other page types and the annual calendar
-- Configurable line spacing for different writing preferences
+Both sections use 5mm square cells, matching Notes and Standup. Each row has one checkbox centered in its first cell. Checkbox size, row counts, section titles, and writing patterns are configurable.
+
+Each daily page includes:
+
+- A left-aligned `YYYY Mon DD Weekday Notes Standup` header, with a bold date and short weekday
+- A black box with white text identifying the active page type
+- A year link to the annual calendar; the month and day are plain text
+- Gray date links above the header, starting with the previous included date and preserving the current page type
+- Configurable grid size, line spacing, navigation appearance, and alignment
 
 Special dates (from CSV) can also be visually marked in the calendar view and shown beneath the weekday in the daily header.
 
 ### 3. Daily Notes Pages
-Meetings notes, etc.
+
+A full-page 5mm grid for meeting notes and other writing, beneath the shared daily navigation.
 
 ### 4. Daily Standup Pages
 
@@ -40,7 +46,7 @@ Standup pages are disabled by default. Enable them with `--standup` or set `enab
 
 When enabled, there is one standup page per included date, with a grid matching Daily Notes below the daily navigation. The Standup tab identifies the page. Links return to that date's Day and Notes pages or the annual calendar. By default, gray date links show the previous included date first, followed by upcoming dates within the planner year, and preserve the current view. Disabled Standup tabs remain visible as plain text unless `show_disabled_standup` is false.
 
-Customize line spacing, style, and color through `STANDUP` in `src/config.typ`. Set `title_show: true` to display a body heading, with configurable title text, font size, and gap. The line count adjusts to the remaining page height.
+Customize grid size, writing pattern, style, and color through `STANDUP` in `src/config.typ`. Set `title_show: true` to display a body heading, with configurable title text, font size, and gap. The writing area adjusts to the remaining page height.
 
 ## Download
 
@@ -64,12 +70,19 @@ Pre-built PDF planners are available for direct download:
 ![Calendar View / Weekends](preview/calendar-view--weekends.png)
 
 ### Day view
-![Day View](preview/day-view.png)
+
+![Day view with five Primary Objectives rows, twenty-seven Secondary Objectives rows, and centered checkboxes](preview/day-view.png)
 
 ### Day notes view
-![Day Notes View](preview/notes-view.png)
 
-### On device
+![Notes view with a 5mm grid and the Notes tab selected](preview/notes-view.png)
+
+### Standup view
+
+![Standup view with the same 5mm grid as Notes and no body heading](preview/standup-view.png)
+
+### On device (earlier layout)
+
 ![Device Calendar View](preview/photo-1.png)
 ![Device Day View](preview/photo-2.png)
 ![Device Notes View](preview/photo-3.png)
@@ -194,7 +207,7 @@ The following settings are available in `src/config.typ`:
 // Shared writing defaults for every page type and Day section.
 #let WRITING = (
   pattern: "grid",   // "lines", "grid", or "none"
-  spacing: 7mm,      // Line gap or square grid cell size
+  spacing: 5mm,      // Line gap or square grid cell size
   style: "dotted",  // "solid", "dotted", or "dashed"
   color: lines_color,
   thickness: 0.6pt,
@@ -211,23 +224,23 @@ The following settings are available in `src/config.typ`:
     // Number of checkboxes per row (default: 1). Grid checkboxes are centered
     // within cells; other patterns place them at the start of each column.
     columns: 1,
-    checkbox_size: 4mm,
+    checkbox_size: 4mm - 1.5pt,
     checkbox_color: 200
   ),
   (
     title_label: "Secondary Objectives",
     title_font_size: 11pt,
-    lines_count: 18,
+    lines_count: 27,
     writing: WRITING,
     checkbox_show: true,
-    checkbox_size: 4mm,
+    checkbox_size: 4mm - 1.5pt,
     checkbox_color: 200
   ),
 )
 
 // Daily notes configuration
 #let daily_notes = (
-  writing: (..WRITING, pattern: "grid", spacing: 5mm, thickness: 1pt),
+  writing: (..WRITING, pattern: "grid", thickness: 1pt),
 )
 
 // Optional standup heading and the same grid defaults as Notes.
@@ -243,7 +256,7 @@ The following settings are available in `src/config.typ`:
 
 Both navigation rows use `left`, `center`, or `right` alignment. `quick_jump_show: false` hides the entire gray row; `quick_jump_previous: false` hides only the back link. Tab labels and active styling apply to every daily view. Larger font sizes, labels, or padding may require increasing `height`, `quick_jump_height`, `navigation_gap`, or `day_label_gap` to preserve clearance.
 
-All writing areas use the same `writing` settings. Set `pattern` to `"grid"`, `"lines"`, or `"none"`; `spacing` controls square cell size or horizontal line spacing. Set `style`, `color`, and `thickness` to change the strokes. Each Day section can override the defaults with, for example, `writing: (..WRITING, pattern: "grid", spacing: 5mm)`. Standup inherits Notes defaults; use `writing: (..WRITING, pattern: "lines")` inside `STANDUP` for horizontal lines, or `writing: (..daily_notes.writing, spacing: 6mm)` for an independent grid size. `lines_count` controls each Day section's height in rows; checkbox settings remain per section.
+All writing areas use the same `writing` settings and share 5mm grid cells by default. Set `pattern` to `"grid"`, `"lines"`, or `"none"`; `spacing` controls square cell size or horizontal line spacing. Set `style`, `color`, and `thickness` to change the strokes. Each Day section can override the defaults with, for example, `writing: (..WRITING, pattern: "grid", spacing: 7mm)`. Standup inherits Notes defaults; use `writing: (..WRITING, pattern: "lines")` inside `STANDUP` for horizontal lines, or `writing: (..daily_notes.writing, spacing: 6mm)` for an independent grid size. `lines_count` controls each Day section's height in rows; checkbox settings remain per section.
 
 ## Building
 
@@ -298,7 +311,9 @@ Single builds write `build/planner-YEAR.pdf`. `--open` opens the PDF in the defa
 To render images, install [Poppler](https://poppler.freedesktop.org/) (`pdftoppm`) and [ImageMagick](https://imagemagick.org/) (`magick`, required for the default shadows):
 
 ```bash
-just preview build/planner-2026.pdf 1:calendar 2:day 263:notes
+# Include standups in the source PDF, then render all page types.
+just build 2026 --standup
+just preview build/planner-2026.pdf 1:calendar 2:day 263:notes 524:standup
 ```
 
 Images go in `preview/`. With no arguments, `just preview` uses the 2026 USA batch PDFs. Use `just preview --help` for page specs, resolution, and shadow settings. See [AGENTS.md](AGENTS.md) for validation commands.
